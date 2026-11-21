@@ -40,7 +40,7 @@ export function intersect(s: SurfaceShape, vertexZ: number, ray: Ray): SurfaceHi
     const y = ray.y + t * ray.dy;
     if (radicand(s, y) < 0) return null;
     const residual = ray.z + t * ray.dz - vertexZ - sag(s, y);
-    if (Math.abs(residual) < TOLERANCE_MM) return finishHit(s, ray, t);
+    if (Math.abs(residual) < TOLERANCE_MM) return t < -TOLERANCE_MM ? null : finishHit(s, ray, t);
     const slope = ray.dz - sagSlope(s, y) * ray.dy;
     if (slope === 0) return null;
     t -= residual / slope;

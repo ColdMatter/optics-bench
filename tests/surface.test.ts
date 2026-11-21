@@ -40,6 +40,16 @@ describe('intersect', () => {
     const steep = { ...sphere, curvature: 1 / 5, semiDiameterMm: 50 };
     expect(intersect(steep, 5, rayAt(0, 8, 0))).toBeNull();
   });
+  test('surface behind the ray start → null', () =>
+    expect(intersect(sphere, 0, rayAt(0, 0, 10))).toBeNull());
+  test('normal matches finite-difference slope of sag on a conic asphere', () => {
+    const shape: SurfaceShape = { curvature: 1 / 40, conic: -0.6, asphere: [2e-6, -3e-9], semiDiameterMm: 12.7 };
+    const hit = intersect(shape, 2, rayAt(1, 7, -5))!;
+    const h = 1e-6;
+    const slope = (sag(shape, hit.y + h) - sag(shape, hit.y - h)) / (2 * h);
+    expect(-hit.normalY / hit.normalZ).toBeCloseTo(slope, 7);
+    expect(Math.hypot(hit.normalY, hit.normalZ)).toBeCloseTo(1, 12);
+  });
   test('normal of a flat surface is along the axis', () => {
     const hit = intersect(flat, 0, rayAt(10, 1, -3))!;
     expect(hit.normalY).toBeCloseTo(0, 12);
