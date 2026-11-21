@@ -49,9 +49,27 @@ function numWhere(v: unknown, path: string, ok: (n: number) => boolean, expected
   if (!ok(n)) fail(path, `expected ${expected}`);
   return n;
 }
-const positive = (v: unknown, path: string) => numWhere(v, path, (n) => n > 0, 'a number greater than zero');
-const nonNegative = (v: unknown, path: string) => numWhere(v, path, (n) => n >= 0, 'a number of at least zero');
-const nonZero = (v: unknown, path: string) => numWhere(v, path, (n) => n !== 0, 'a non-zero number');
+
+/** Range rules for finite numbers in a setup, shared with the UI's field validation. */
+export interface NumberRule {
+  ok: (n: number) => boolean;
+  expected: string;
+}
+export const numberRules = {
+  finite: { ok: () => true, expected: 'a finite number' },
+  positive: { ok: (n) => n > 0, expected: 'a number greater than zero' },
+  nonNegative: { ok: (n) => n >= 0, expected: 'a number of at least zero' },
+  nonZero: { ok: (n) => n !== 0, expected: 'a non-zero number' },
+  tilt: { ok: (n) => Math.abs(n) < 90, expected: 'an angle strictly between -90 and 90' },
+  cone: { ok: (n) => n > 0 && n < 90, expected: 'an angle between 0 and 90' },
+  count: { ok: (n) => Number.isInteger(n) && n >= 1, expected: 'an integer of at least 1' },
+  m2: { ok: (n) => n >= 1, expected: 'a number of at least 1' },
+} satisfies Record<string, NumberRule>;
+
+const byRule = (rule: NumberRule) => (v: unknown, path: string) => numWhere(v, path, rule.ok, rule.expected);
+const positive = byRule(numberRules.positive);
+const nonNegative = byRule(numberRules.nonNegative);
+const nonZero = byRule(numberRules.nonZero);
 function str(v: unknown, path: string): string {
   if (typeof v !== 'string') fail(path, 'expected a string');
   return v as string;
@@ -77,7 +95,7 @@ function readPlaced(o: Obj, path: string) {
     label: str(o.label, at(path, 'label')),
     z: num(o.z, at(path, 'z')),
     decentreMm: num(o.decentreMm, at(path, 'decentreMm')),
-    tiltDeg: numWhere(o.tiltDeg, at(path, 'tiltDeg'), (n) => Math.abs(n) < 90, 'an angle strictly between -90 and 90'),
+    tiltDeg: byRule(numberRules.tilt)(o.tiltDeg, at(path, 'tiltDeg')),
   };
 }
 
@@ -92,12 +110,13 @@ function readSource(v: unknown, path: string): Source {
     wavelengthsNm: numArr(o.wavelengthsNm, at(path, 'wavelengthsNm'), 1),
   };
   base.wavelengthsNm.forEach((w, i) => positive(w, `${at(path, 'wavelengthsNm')}[${i}]`));
-  const rayCount = () =>
-    numWhere(o.rayCount, at(path, 'rayCount'), (n) => Number.isInteger(n) && n >= 1, 'an integer of at least 1');
+  const rayCount = () => byRule(numberRules.count)(o.rayCount, at(path, 'rayCount'));
   if (kind === 'point') {
     const cone = o.coneHalfAngleDeg;
     const coneHalfAngleDeg =
-      cone === 'fill' ? 'fill' : numWhere(cone, at(path, 'coneHalfAngleDeg'), (n) => n > 0 && n < 90, '"fill" or an angle between 0 and 90');
+      cone === 'fill'
+        ? 'fill'
+        : numWhere(cone, at(path, 'coneHalfAngleDeg'), numberRules.cone.ok, `"fill" or ${numberRules.cone.expected}`);
     return { ...base, kind, coneHalfAngleDeg, rayCount: rayCount() };
   }
   if (kind === 'collimated') {
@@ -115,7 +134,7 @@ function readSource(v: unknown, path: string): Source {
     angleDeg: num(o.angleDeg, at(path, 'angleDeg')),
     waistRadiusMm: positive(o.waistRadiusMm, at(path, 'waistRadiusMm')),
     waistZ: num(o.waistZ, at(path, 'waistZ')),
-    m2: numWhere(o.m2, at(path, 'm2'), (n) => n >= 1, 'a number of at least 1'),
+    m2: byRule(numberRules.m2)(o.m2, at(path, 'm2')),
   };
 }
 
