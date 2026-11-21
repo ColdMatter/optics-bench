@@ -253,7 +253,7 @@ export function createPropertiesPanel(container: HTMLElement, store: Store): Pro
         'dl',
         { class: 'facts' },
         h('dt', {}, 'Part'),
-        h('dd', {}, `${p.partNumber}`, h('span', { class: 'muted' }, ` · ${p.vendor}`)),
+        h('dd', {}, `${p.partNumber}`, p.vendor && h('span', { class: 'muted' }, ` · ${p.vendor}`)),
         h('dt', {}, 'Data'),
         h('dd', {}, sourceNode),
         h('dt', {}, 'Centre thickness'),

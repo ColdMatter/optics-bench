@@ -1,7 +1,7 @@
 import lenses from '../data/lenses.json';
 import { newId } from '../engine/io';
 import { opticExtent } from '../engine/optic';
-import type { Id, LensPrescription, Optic, Setup, Source, TraceWarning } from '../engine/types';
+import type { GlassData, Id, LensPrescription, Optic, Setup, Source, TraceWarning } from '../engine/types';
 import type { AppState, Store } from './store';
 
 export const catalogue = lenses as LensPrescription[];
@@ -109,16 +109,15 @@ function insertAfter<T extends { id: Id }>(list: T[], item: T, afterId: Id | nul
   return [...list.slice(0, index + 1), item, ...list.slice(index + 1)];
 }
 
-/** Adds the element after the selection (in list order) as one undo step, and selects it. */
-export function insertElement(store: Store, item: Source | Optic): void {
+/** Adds the element, and any glasses it needs, after the selection (in list order) as one undo step, and selects it. */
+export function insertElement(store: Store, item: Source | Optic, glasses: Record<string, GlassData> = {}): void {
   const { selectedId } = store.get();
-  store.apply(
-    (s) =>
-      isSource(item)
-        ? { ...s, sources: insertAfter(s.sources, item, selectedId) }
-        : { ...s, optics: insertAfter(s.optics, item, selectedId) },
-    `Add ${item.label}`,
-  );
+  store.apply((s) => {
+    const withGlasses = Object.keys(glasses).length ? { ...s, glasses: { ...s.glasses, ...glasses } } : s;
+    return isSource(item)
+      ? { ...withGlasses, sources: insertAfter(s.sources, item, selectedId) }
+      : { ...withGlasses, optics: insertAfter(s.optics, item, selectedId) };
+  }, `Add ${item.label}`);
   store.select(item.id);
 }
 
