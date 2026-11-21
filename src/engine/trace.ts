@@ -157,7 +157,7 @@ export function lookupFor(glasses: Record<string, GlassData>): GlassLookup {
   return lookup;
 }
 
-function defaultEndZ(setup: Setup): number {
+export function defaultEndZ(setup: Setup): number {
   if (setup.optics.length === 0) {
     return setup.sources.length ? Math.max(...setup.sources.map((s) => s.z)) + EMPTY_TAIL_MM : EMPTY_TAIL_MM;
   }
