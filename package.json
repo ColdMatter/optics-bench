@@ -1,0 +1,21 @@
+{
+  "name": "optics-sim",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "e2e": "npm run build && node e2e/smoke.mjs",
+    "glasses": "node scripts/build-glasses.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-singlefile": "^2.3.4",
+    "vitest": "^5.1.1",
+    "yaml": "^2.9.1"
+  }
+}
