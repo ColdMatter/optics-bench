@@ -11,7 +11,7 @@ if (!dbPath) {
 }
 
 // Earlier vendors win when two catalogues share a name.
-const vendors = ['schott', 'ohara', 'cdgm', 'hoya', 'sumita'];
+const vendors = ['schott', 'ohara', 'cdgm', 'hoya', 'sumita', 'hikari'];
 const glasses = {};
 
 for (const vendor of vendors) {
