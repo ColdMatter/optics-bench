@@ -1,6 +1,7 @@
 import { inRange, refractiveIndex } from './glass';
 import { intersect, refract } from './surface';
 import type {
+  Abcd,
   CatalogueLens,
   GlassLookup,
   LensPrescription,
@@ -114,4 +115,26 @@ export function traceLens(lens: CatalogueLens, ray: Ray, glasses: GlassLookup): 
     vertexZ += s.thicknessToNextMm;
   }
   return { ray: fromLocal(local, placement), points, warnings };
+}
+
+const multiply = (a: Abcd, b: Abcd): Abcd => [
+  a[0] * b[0] + a[1] * b[2],
+  a[0] * b[1] + a[1] * b[3],
+  a[2] * b[0] + a[3] * b[2],
+  a[2] * b[1] + a[3] * b[3],
+];
+
+/** Paraxial matrix from first vertex to last vertex, air on both sides (asphere and conic terms ignored). */
+export function lensAbcd(lens: CatalogueLens, wavelengthNm: number, glasses: GlassLookup): Abcd {
+  const surfaces = (lens.flipped ? flipPrescription(lens.prescription) : lens.prescription).surfaces;
+  let m: Abcd = [1, 0, 0, 1];
+  let n1 = 1;
+  surfaces.forEach((s, i) => {
+    const glass = s.glassAfter === null ? undefined : glasses(s.glassAfter);
+    const n2 = glass ? refractiveIndex(glass, wavelengthNm) : 1;
+    m = multiply([1, 0, ((n1 - n2) * s.curvature) / n2, n1 / n2], m);
+    if (i < surfaces.length - 1) m = multiply([1, s.thicknessToNextMm, 0, 1], m);
+    n1 = n2;
+  });
+  return m;
 }

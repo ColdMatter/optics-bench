@@ -134,3 +134,27 @@ export interface SetupTrace {
   warnings: TraceWarning[];
   endZ: number;
 }
+
+export type Abcd = [number, number, number, number]; // A, B (mm), C (1/mm), D
+export interface Waist {
+  afterOpticId: Id | null;
+  z: number;
+  radiusMm: number;
+  collimated: boolean; // Rayleigh range > 1e5 mm; readouts then ignore z
+}
+export type GaussianWarning = { kind: 'clipped'; opticId: Id } | { kind: 'tilted'; opticId: Id };
+export interface GaussianSegment {
+  zStart: number;
+  zEnd: number;
+  qStart: { re: number; im: number };
+  centre: [number, number][];
+}
+export interface GaussianTrace {
+  sourceId: Id;
+  wavelengthNm: number;
+  m2: number;
+  centre: RayPath;
+  segments: GaussianSegment[];
+  waists: Waist[];
+  warnings: GaussianWarning[];
+}

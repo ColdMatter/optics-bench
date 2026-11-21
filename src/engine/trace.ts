@@ -1,5 +1,6 @@
 import { makeGlassLookup } from './glass';
 import { opticExtent, interactOptic } from './optic';
+import type { InteractionResult } from './lens';
 import type {
   GlassData,
   GlassLookup,
@@ -18,7 +19,7 @@ const EMPTY_TAIL_MM = 100;
 const TAIL_FRACTION = 0.3;
 const radians = (deg: number) => (deg * Math.PI) / 180;
 
-function sortedByAxialStart(optics: Optic[]): Optic[] {
+export function sortedByAxialStart(optics: Optic[]): Optic[] {
   return optics
     .map((optic, index) => ({ optic, index, start: opticExtent(optic)[0] }))
     .sort((a, b) => a.start - b.start || a.index - b.index)
@@ -98,18 +99,20 @@ export function traceRay(ray: Ray, optics: Optic[], glasses: GlassLookup, endZ: 
   return traceRayCollecting(ray, optics, glasses, endZ, undefined);
 }
 
-function traceRayCollecting(
+export function traceRayCollecting(
   start: Ray,
   optics: Optic[],
   glasses: GlassLookup,
   endZ: number,
   onWarning: ((w: TraceWarning) => void) | undefined,
+  onVisit?: (optic: Optic, rayIn: Ray, result: InteractionResult) => void,
 ): RayPath {
   const ordered = isSorted(optics) ? optics : sortedByAxialStart(optics);
   const points: [number, number][] = [[start.z, start.y]];
   let ray = start;
   for (const optic of ordered) {
     const result = interactOptic(optic, ray, glasses);
+    onVisit?.(optic, ray, result);
     for (const w of result.warnings) onWarning?.(w);
     for (const p of result.points) points.push(p);
     if (!result.ray) {

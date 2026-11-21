@@ -1,5 +1,6 @@
-import { fromLocal, lensThickness, toLocal, traceLens, type InteractionResult } from './lens';
-import type { GlassLookup, Optic, Ray } from './types';
+import { fromLocal, lensAbcd, lensThickness, toLocal, traceLens, type InteractionResult } from './lens';
+import { slmAbcd, slmHitHeight, traceSlm } from './slm';
+import type { Abcd, GlassLookup, Optic, Ray } from './types';
 
 /** Axial [start, end] of an element, ignoring tilt. */
 export function opticExtent(o: Optic): [number, number] {
@@ -21,7 +22,7 @@ export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): Interac
     case 'lens':
       return traceLens(o, ray, glasses);
     case 'slm':
-      throw new Error('SLM tracing arrives in Task 4');
+      return traceSlm(o, ray);
     case 'screen': {
       const hit = planeHit(ray, o.z);
       return hit ? { ray: hit, points: [[hit.z, hit.y]], warnings: [] } : blocked(null);
@@ -45,4 +46,25 @@ export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): Interac
       return { ray: out, points: [[out.z, out.y]], warnings: [] };
     }
   }
+}
+
+/** Paraxial matrix of an element at local hit height yHit (only an SLM depends on it). */
+export function opticAbcd(o: Optic, wavelengthNm: number, yHit: number, glasses: GlassLookup): Abcd {
+  switch (o.kind) {
+    case 'lens':
+      return lensAbcd(o, wavelengthNm, glasses);
+    case 'slm':
+      return slmAbcd(o, yHit, wavelengthNm);
+    case 'ideal':
+      return [1, 0, -1 / o.focalLengthMm, 1];
+    case 'aperture':
+    case 'screen':
+      return [1, 0, 0, 1];
+  }
+}
+
+/** Height at which a ray meets the element's local frame, for evaluating its ABCD. */
+export function localHitHeight(o: Optic, ray: Ray): number {
+  if (o.kind === 'slm') return slmHitHeight(o, ray);
+  return 0;
 }
