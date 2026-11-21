@@ -17,7 +17,7 @@ function radicand(s: SurfaceShape, y: number): number {
 
 function asphereSag(s: SurfaceShape, y: number): number {
   let total = 0;
-  for (let k = 0; k < s.asphere.length; k++) total += s.asphere[k] * y ** (2 * k + 4);
+  for (let k = 0; k < s.asphere.length; k++) total += s.asphere[k]! * y ** (2 * k + 4);
   return total;
 }
 
@@ -29,7 +29,7 @@ export function sag(s: SurfaceShape, y: number): number {
 
 function sagSlope(s: SurfaceShape, y: number): number {
   let slope = (s.curvature * y) / Math.sqrt(radicand(s, y));
-  for (let k = 0; k < s.asphere.length; k++) slope += (2 * k + 4) * s.asphere[k] * y ** (2 * k + 3);
+  for (let k = 0; k < s.asphere.length; k++) slope += (2 * k + 4) * s.asphere[k]! * y ** (2 * k + 3);
   return slope;
 }
 
