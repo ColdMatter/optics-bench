@@ -74,8 +74,11 @@ export function traceGaussian(
   let q: Complex = { re: source.z - source.waistZ, im: rayleigh };
   let zPrev = source.z;
   let pointPrev: [number, number] = [start.z, start.y];
+  let rayPrev: Ray = start;
+  let stopped = false;
   for (const { optic, rayIn, result } of visits) {
     const [entryZ, exitZ] = opticExtent(optic);
+    if (entryZ >= endZ) break;
     const entryPoint = result.points[0];
     if (entryPoint) {
       segments.push({ zStart: zPrev, zEnd: entryZ, qStart: q, centre: [pointPrev, entryPoint] });
@@ -88,7 +91,11 @@ export function traceGaussian(
     if ('tiltDeg' in optic && Math.abs(optic.tiltDeg) > TILT_LIMIT_DEG) {
       warnings.push({ kind: 'tilted', opticId: optic.id });
     }
-    if (!result.ray) break;
+    if (!result.ray) {
+      stopped = true;
+      break;
+    }
+    rayPrev = result.ray;
 
     q = applyAbcd(q, opticAbcd(optic, wavelengthNm, localHitHeight(optic, rayIn), glasses));
     zPrev = exitZ;
@@ -103,8 +110,8 @@ export function traceGaussian(
     }
   }
 
-  if (centre.blockedBy === null && endZ > zPrev) {
-    const endPoint = centre.points[centre.points.length - 1]!;
+  if (!stopped && endZ > zPrev) {
+    const endPoint: [number, number] = [endZ, rayPrev.y + ((endZ - rayPrev.z) / rayPrev.dz) * rayPrev.dy];
     segments.push({ zStart: zPrev, zEnd: endZ, qStart: q, centre: [pointPrev, endPoint] });
   }
   return { sourceId: source.id, wavelengthNm, m2: source.m2, centre, segments, waists, warnings };

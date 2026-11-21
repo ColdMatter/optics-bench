@@ -1,4 +1,4 @@
-import { fromLocal, lensAbcd, lensThickness, toLocal, traceLens, type InteractionResult } from './lens';
+import { entryPlanePoint, fromLocal, lensAbcd, lensThickness, toLocal, traceLens, type InteractionResult } from './lens';
 import { slmAbcd, slmHitHeight, traceSlm } from './slm';
 import type { Abcd, GlassLookup, Optic, Ray } from './types';
 
@@ -13,8 +13,14 @@ function planeHit(ray: Ray, planeZ: number): Ray | null {
   return { ...ray, z: planeZ, y: ray.y + t * ray.dy };
 }
 
-function blocked(at: Ray | null): InteractionResult {
-  return { ray: null, points: at ? [[at.z, at.y]] : [], warnings: [] };
+function blocked(at: Ray): InteractionResult {
+  return { ray: null, points: [[at.z, at.y]], warnings: [] };
+}
+
+/** Where a backward-travelling ray's line meets the plane. */
+function lineHit(ray: Ray, planeZ: number): Ray {
+  const t = ray.dz === 0 ? 0 : (planeZ - ray.z) / ray.dz;
+  return { ...ray, z: planeZ, y: ray.y + t * ray.dy };
 }
 
 export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): InteractionResult {
@@ -25,11 +31,11 @@ export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): Interac
       return traceSlm(o, ray);
     case 'screen': {
       const hit = planeHit(ray, o.z);
-      return hit ? { ray: hit, points: [[hit.z, hit.y]], warnings: [] } : blocked(null);
+      return hit ? { ray: hit, points: [[hit.z, hit.y]], warnings: [] } : blocked(lineHit(ray, o.z));
     }
     case 'aperture': {
       const hit = planeHit(ray, o.z);
-      if (!hit) return blocked(null);
+      if (!hit) return blocked(lineHit(ray, o.z));
       if (Math.abs(hit.y - o.decentreMm) > o.diameterMm / 2) return blocked(hit);
       return { ray: hit, points: [[hit.z, hit.y]], warnings: [] };
     }
@@ -37,7 +43,7 @@ export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): Interac
       const placement = { z: o.z, decentreMm: o.decentreMm, tiltDeg: o.tiltDeg, pivotZ: 0 };
       const local = toLocal(ray, placement);
       const hit = planeHit(local, 0);
-      if (!hit) return blocked(null);
+      if (!hit) return { ray: null, points: [entryPlanePoint(ray, placement)], warnings: [] };
       const world = fromLocal(hit, placement);
       if (Math.abs(hit.y) > o.apertureMm / 2) return blocked(world);
       const slope = local.dy / local.dz - hit.y / o.focalLengthMm;

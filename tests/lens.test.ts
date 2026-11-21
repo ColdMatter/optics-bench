@@ -47,3 +47,30 @@ describe('lens prescriptions', () => {
     for (const y of [3, 10]) expect(sag(flipped, y)).toBeCloseTo(-sag(original, y), 12);
   });
 });
+
+describe('blocked rays end at the element', () => {
+  const mk = (glass: string, curvature: number, semi: number) => ({
+    kind: 'lens' as const, id: 'l', label: 'L', z: 30, decentreMm: 0, tiltDeg: 0, flipped: false,
+    prescription: {
+      partNumber: 't', vendor: 't', source: 'drawing' as const, sourceRef: 't',
+      surfaces: [
+        { curvature, conic: 0, asphere: [], semiDiameterMm: semi, thicknessToNextMm: 3, glassAfter: glass },
+        { curvature: 0, conic: 0, asphere: [], semiDiameterMm: semi, thicknessToNextMm: 0, glassAfter: null },
+      ],
+    },
+  });
+  const ray = { z: 0, y: 5, dz: 1, dy: 0, wavelengthNm: 780 };
+  test('unknown glass', async () => {
+    const { traceLens } = await import('../src/engine/lens');
+    const r = traceLens(mk('NO-SUCH', 0.02, 10), ray, () => undefined);
+    expect(r.ray).toBeNull();
+    expect(r.points).toEqual([[30, 5]]);
+  });
+  test('first-surface miss', async () => {
+    const { traceLens } = await import('../src/engine/lens');
+    const { makeGlassLookup } = await import('../src/engine/glass');
+    const r = traceLens(mk('N-BK7', 0.2, 2), ray, makeGlassLookup());
+    expect(r.ray).toBeNull();
+    expect(r.points).toEqual([[30, 5]]);
+  });
+});

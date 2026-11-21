@@ -23,6 +23,10 @@ export interface Placement {
   pivotZ: number;
 }
 
+function placementOf(lens: CatalogueLens, prescription: LensPrescription): Placement {
+  return { z: lens.z, decentreMm: lens.decentreMm, tiltDeg: lens.tiltDeg, pivotZ: lensThickness(prescription) / 2 };
+}
+
 export function lensThickness(p: LensPrescription): number {
   return p.surfaces.reduce((sum, s) => sum + s.thicknessToNextMm, 0);
 }
@@ -72,6 +76,14 @@ export function fromLocal(ray: Ray, pl: Placement): Ray {
   };
 }
 
+/** Where the ray's line meets the element's entry plane (local z = 0), in world coordinates. */
+export function entryPlanePoint(ray: Ray, pl: Placement): [number, number] {
+  const local = toLocal(ray, pl);
+  const t = local.dz === 0 ? 0 : (0 - local.z) / local.dz;
+  const w = fromLocal({ ...local, z: 0, y: local.y + t * local.dy }, pl);
+  return [w.z, w.y];
+}
+
 export function traceLens(lens: CatalogueLens, ray: Ray, glasses: GlassLookup): InteractionResult {
   const prescription = lens.flipped ? flipPrescription(lens.prescription) : lens.prescription;
   const surfaces = prescription.surfaces;
@@ -79,18 +91,13 @@ export function traceLens(lens: CatalogueLens, ray: Ray, glasses: GlassLookup): 
     if (s.glassAfter !== null && !glasses(s.glassAfter)) {
       return {
         ray: null,
-        points: [],
+        points: [entryPlanePoint(ray, placementOf(lens, prescription))],
         warnings: [{ kind: 'unknown-glass', opticId: lens.id, glass: s.glassAfter }],
       };
     }
   }
 
-  const placement: Placement = {
-    z: lens.z,
-    decentreMm: lens.decentreMm,
-    tiltDeg: lens.tiltDeg,
-    pivotZ: lensThickness(prescription) / 2,
-  };
+  const placement = placementOf(lens, prescription);
   const points: [number, number][] = [];
   const warnings: TraceWarning[] = [];
   let local: Ray | null = toLocal(ray, placement);
@@ -98,7 +105,10 @@ export function traceLens(lens: CatalogueLens, ray: Ray, glasses: GlassLookup): 
   let n1 = 1;
   for (const s of surfaces) {
     const hit = intersect(s, vertexZ, local);
-    if (!hit) return { ray: null, points, warnings };
+    if (!hit) {
+      if (points.length === 0) points.push(entryPlanePoint(ray, placement));
+      return { ray: null, points, warnings };
+    }
     const w = fromLocal({ ...local, z: hit.z, y: hit.y }, placement);
     points.push([w.z, w.y]);
     let n2 = 1;

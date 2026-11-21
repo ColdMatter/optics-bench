@@ -93,3 +93,31 @@ describe('gaussian beams', () => {
     expect(traceGaussians(setup, 100).map((t) => t.wavelengthNm)).toEqual([780, 852]);
   });
 });
+
+describe('gaussian trace extent and blocking', () => {
+  test('optics beyond endZ are ignored', () => {
+    const t = traceGaussian(source(), [ideal({ z: 200 })], 1000, glasses, 100);
+    expect(t.waists).toHaveLength(1);
+    expect(t.segments).toHaveLength(1);
+    expect(t.segments[0]!.zEnd).toBe(100);
+    expect(radiusAt(t, 150)).toBeNull();
+    expect(radiusAt(t, 100)).not.toBeNull();
+  });
+
+  test('unknown-glass lens first: envelope reaches the lens', () => {
+    const lens = {
+      kind: 'lens' as const, id: 'l', label: 'L', z: 30, decentreMm: 0, tiltDeg: 0, flipped: false,
+      prescription: {
+        partNumber: 't', vendor: 't', source: 'drawing' as const, sourceRef: 't',
+        surfaces: [
+          { curvature: 0.02, conic: 0, asphere: [], semiDiameterMm: 10, thicknessToNextMm: 3, glassAfter: 'NO-SUCH' },
+          { curvature: 0, conic: 0, asphere: [], semiDiameterMm: 10, thicknessToNextMm: 0, glassAfter: null },
+        ],
+      },
+    };
+    const t = traceGaussian(source(), [lens], 1000, glasses, 100);
+    expect(t.segments.map((s) => [s.zStart, s.zEnd])).toEqual([[0, 30]]);
+    expect(radiusAt(t, 10)).not.toBeNull();
+    expect(t.centre.points[t.centre.points.length - 1]).toEqual([30, 0]);
+  });
+});

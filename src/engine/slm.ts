@@ -1,4 +1,4 @@
-import { fromLocal, toLocal, type InteractionResult, type Placement } from './lens';
+import { entryPlanePoint, fromLocal, toLocal, type InteractionResult, type Placement } from './lens';
 import type { Abcd, PhaseTerm, Ray, Slm } from './types';
 
 const NM_TO_MM = 1e-6;
@@ -75,7 +75,7 @@ const placementOf = (slm: Slm): Placement => ({ z: slm.z, decentreMm: slm.decent
 export function traceSlm(slm: Slm, ray: Ray): InteractionResult {
   const placement = placementOf(slm);
   const local = toLocal(ray, placement);
-  if (local.dz <= 0) return { ray: null, points: [], warnings: [] };
+  if (local.dz <= 0) return { ray: null, points: [entryPlanePoint(ray, placement)], warnings: [] };
   const t = -local.z / local.dz;
   const hit: Ray = { ...local, z: 0, y: local.y + t * local.dy };
   const world = fromLocal(hit, placement);
