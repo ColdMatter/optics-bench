@@ -14,6 +14,7 @@ import type {
 
 const DEFAULT_CONE_DEG = 5;
 const MIN_TAIL_MM = 50;
+const EMPTY_TAIL_MM = 100;
 const TAIL_FRACTION = 0.3;
 const radians = (deg: number) => (deg * Math.PI) / 180;
 
@@ -109,7 +110,7 @@ function traceRayCollecting(
   let ray = start;
   for (const optic of ordered) {
     const result = interactOptic(optic, ray, glasses);
-    if (result.warning) onWarning?.(result.warning);
+    for (const w of result.warnings) onWarning?.(w);
     for (const p of result.points) points.push(p);
     if (!result.ray) {
       return { wavelengthNm: start.wavelengthNm, points, blockedBy: optic.id, final: null };
@@ -152,6 +153,9 @@ function lookupFor(glasses: Record<string, GlassData>): GlassLookup {
 }
 
 function defaultEndZ(setup: Setup): number {
+  if (setup.optics.length === 0) {
+    return setup.sources.length ? Math.max(...setup.sources.map((s) => s.z)) + EMPTY_TAIL_MM : EMPTY_TAIL_MM;
+  }
   const extents = setup.optics.map(opticExtent);
   const starts = [...setup.sources.map((s) => s.z), ...extents.map((e) => e[0])];
   const ends = [...setup.sources.map((s) => s.z), ...extents.map((e) => e[1])];

@@ -97,6 +97,27 @@ describe('aperture and blocking', () => {
   });
 });
 
+describe('tilted elements', () => {
+  test('tilt is counter-clockwise: the shift is positive for positive tilt, negative for negative', () => {
+    const plate = (tiltDeg: number) =>
+      interactOptic(lens([surf(0, 10, 'N-BK7'), surf(0, 0, null)], { tiltDeg }), axialRay(0, 780, 50), glasses).ray!;
+    expect(plate(10).y).toBeGreaterThan(0);
+    expect(plate(-10).y).toBeCloseTo(-plate(10).y, 12);
+  });
+
+  test('tilted and decentred ideal lens', () => {
+    const d = 2;
+    const phi = rad(15);
+    const f = 100;
+    const out = interactOptic(ideal({ z: 50, decentreMm: d, tiltDeg: 15, focalLengthMm: f }), axialRay(0, 780, 0), glasses).ray!;
+    const hitZ = 50 + d * Math.tan(phi);
+    const localTan = -Math.tan(phi) + d / (f * Math.cos(phi));
+    expect(out.z).toBeCloseTo(hitZ, 12);
+    expect(out.y).toBeCloseTo(0, 12);
+    expect(out.dy / out.dz).toBeCloseTo(Math.tan(Math.atan(localTan) + phi), 12);
+  });
+});
+
 describe('thick lenses', () => {
   const index = (nm: number) => refractiveIndex(glasses('N-BK7')!, nm);
 
@@ -116,7 +137,7 @@ describe('thick lenses', () => {
     const shift = 10 * Math.sin(theta) * (1 - Math.cos(theta) / Math.sqrt(n * n - Math.sin(theta) ** 2));
     expect(out.dy).toBeCloseTo(0, 12);
     expect(out.dz).toBeCloseTo(1, 12);
-    expect(Math.abs(out.y)).toBeCloseTo(shift, 9);
+    expect(out.y).toBeCloseTo(shift, 9);
   });
 
   test('a ray that misses a lens surface is blocked by that lens', () => {
@@ -133,6 +154,11 @@ describe('thick lenses', () => {
 });
 
 describe('layout', () => {
+  test('empty setups still get a finite end plane', () => {
+    expect(traceSetup(setup([], [])).endZ).toBe(100);
+    expect(traceSetup(setup([point({ z: 20 })], [])).endZ).toBe(120);
+  });
+
   test('overlap warning', () => {
     const a = lens([surf(0, 10, 'N-BK7'), surf(0, 0, null)], { id: 'a', z: 100 });
     const b = lens([surf(0, 10, 'N-BK7'), surf(0, 0, null)], { id: 'b', z: 105 });
@@ -207,6 +233,15 @@ const achromat = {
   partNumber: 't', vendor: 't', source: 'drawing' as const, sourceRef: 't',
   surfaces: [surf(1 / 30, 6, 'N-BK7'), surf(-1 / 25, 2, 'N-SF5'), surf(-1 / 80, 0, null)],
 };
+
+describe('achromat extrapolation', () => {
+  test('both glasses are reported when the wavelength is outside their ranges', () => {
+    const l = lens(achromat.surfaces);
+    const trace = traceSetup(setup([collimated({ widthMm: 1, rayCount: 3, wavelengthsNm: [5000] })], [l]));
+    const names = trace.warnings.filter((w) => w.kind === 'glass-extrapolated').map((w) => (w as { glass: string }).glass);
+    expect(names.sort()).toEqual(['N-BK7', 'N-SF5']);
+  });
+});
 
 describe('performance', () => {
   test('trace performance', () => {

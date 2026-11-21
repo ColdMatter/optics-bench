@@ -13,7 +13,7 @@ function planeHit(ray: Ray, planeZ: number): Ray | null {
 }
 
 function blocked(at: Ray | null): InteractionResult {
-  return { ray: null, points: at ? [[at.z, at.y]] : [] };
+  return { ray: null, points: at ? [[at.z, at.y]] : [], warnings: [] };
 }
 
 export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): InteractionResult {
@@ -24,13 +24,13 @@ export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): Interac
       throw new Error('SLM tracing arrives in Task 4');
     case 'screen': {
       const hit = planeHit(ray, o.z);
-      return hit ? { ray: hit, points: [[hit.z, hit.y]] } : blocked(null);
+      return hit ? { ray: hit, points: [[hit.z, hit.y]], warnings: [] } : blocked(null);
     }
     case 'aperture': {
       const hit = planeHit(ray, o.z);
       if (!hit) return blocked(null);
       if (Math.abs(hit.y - o.decentreMm) > o.diameterMm / 2) return blocked(hit);
-      return { ray: hit, points: [[hit.z, hit.y]] };
+      return { ray: hit, points: [[hit.z, hit.y]], warnings: [] };
     }
     case 'ideal': {
       const placement = { z: o.z, decentreMm: o.decentreMm, tiltDeg: o.tiltDeg, pivotZ: 0 };
@@ -42,7 +42,7 @@ export function interactOptic(o: Optic, ray: Ray, glasses: GlassLookup): Interac
       const slope = local.dy / local.dz - hit.y / o.focalLengthMm;
       const norm = Math.hypot(1, slope);
       const out = fromLocal({ ...hit, dz: 1 / norm, dy: slope / norm }, placement);
-      return { ray: out, points: [[out.z, out.y]] };
+      return { ray: out, points: [[out.z, out.y]], warnings: [] };
     }
   }
 }

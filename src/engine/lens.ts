@@ -11,7 +11,7 @@ import type {
 export interface InteractionResult {
   ray: Ray | null;
   points: [number, number][];
-  warning?: TraceWarning;
+  warnings: TraceWarning[];
 }
 
 /** Element placement: origin (z, decentre), tilted about the local axial point `pivotZ`. */
@@ -34,7 +34,7 @@ export function flipPrescription(p: LensPrescription): LensPrescription {
     return {
       ...s,
       curvature: -s.curvature,
-      asphere: [...s.asphere],
+      asphere: s.asphere.map((a) => -a),
       thicknessToNextMm: last ? 0 : p.surfaces[n - 2 - i]!.thicknessToNextMm,
       glassAfter: last ? null : p.surfaces[n - 2 - i]!.glassAfter,
     };
@@ -79,7 +79,7 @@ export function traceLens(lens: CatalogueLens, ray: Ray, glasses: GlassLookup): 
       return {
         ray: null,
         points: [],
-        warning: { kind: 'unknown-glass', opticId: lens.id, glass: s.glassAfter },
+        warnings: [{ kind: 'unknown-glass', opticId: lens.id, glass: s.glassAfter }],
       };
     }
   }
@@ -91,27 +91,27 @@ export function traceLens(lens: CatalogueLens, ray: Ray, glasses: GlassLookup): 
     pivotZ: lensThickness(prescription) / 2,
   };
   const points: [number, number][] = [];
-  let warning: TraceWarning | undefined;
+  const warnings: TraceWarning[] = [];
   let local: Ray | null = toLocal(ray, placement);
   let vertexZ = 0;
   let n1 = 1;
   for (const s of surfaces) {
     const hit = intersect(s, vertexZ, local);
-    if (!hit) return { ray: null, points, ...(warning && { warning }) };
+    if (!hit) return { ray: null, points, warnings };
     const w = fromLocal({ ...local, z: hit.z, y: hit.y }, placement);
     points.push([w.z, w.y]);
     let n2 = 1;
     if (s.glassAfter !== null) {
       const glass = glasses(s.glassAfter)!;
       n2 = refractiveIndex(glass, ray.wavelengthNm);
-      if (!warning && !inRange(glass, ray.wavelengthNm)) {
-        warning = { kind: 'glass-extrapolated', glass: glass.name, wavelengthNm: ray.wavelengthNm };
+      if (!inRange(glass, ray.wavelengthNm) && !warnings.some((w) => w.kind === 'glass-extrapolated' && w.glass === glass.name)) {
+        warnings.push({ kind: 'glass-extrapolated', glass: glass.name, wavelengthNm: ray.wavelengthNm });
       }
     }
     local = refract(local, hit, n1, n2);
-    if (!local) return { ray: null, points, ...(warning && { warning }) };
+    if (!local) return { ray: null, points, warnings };
     n1 = n2;
     vertexZ += s.thicknessToNextMm;
   }
-  return { ray: fromLocal(local, placement), points, ...(warning && { warning }) };
+  return { ray: fromLocal(local, placement), points, warnings };
 }
