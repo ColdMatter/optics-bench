@@ -18,6 +18,13 @@ export function h<K extends keyof HTMLElementTagNameMap>(
   return node;
 }
 
+/** Whether keystrokes aimed at `target` are text entry, which global shortcuts must leave alone. */
+export function isTyping(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return true;
+  return target instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'submit', 'reset', 'file'].includes(target.type);
+}
+
 /** Up to ten significant figures, without trailing zeros or float noise. */
 export const formatFull = (v: number) => (Number.isFinite(v) ? String(Number(v.toPrecision(10))) : '');
 export const formatShort = (v: number) => (Number.isFinite(v) ? String(Number(v.toFixed(3))) : '');

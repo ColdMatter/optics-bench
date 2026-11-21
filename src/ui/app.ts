@@ -2,7 +2,10 @@ import { traceGaussians } from '../engine/gaussian';
 import { parseSetup, serialiseSetup } from '../engine/io';
 import { traceSetup } from '../engine/trace';
 import type { GaussianTrace, Setup, SetupTrace } from '../engine/types';
-import { h, pickFile } from './controls';
+import { drawBench } from './bench/draw';
+import { attachBenchInteraction, hoverLines, type BenchHover } from './bench/interact';
+import { fitAll, resize as resizeView, type View } from './bench/view';
+import { h, isTyping, pickFile } from './controls';
 import { insertElement, kindNames, newOptic, newSource, warningsByElement, type OpticKind, type SourceKind } from './elements';
 import { createPropertiesPanel } from './properties';
 import type { AppState, Store } from './store';
@@ -47,12 +50,6 @@ const shortcut = (key: string, shift = false) => (isMac ? `${shift ? '⇧' : ''}
 function computeResults(setup: Setup): TraceResults {
   const trace = traceSetup(setup);
   return { trace, gaussians: traceGaussians(setup, trace.endZ) };
-}
-
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  if (target.isContentEditable || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return true;
-  return target instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'submit', 'reset', 'file'].includes(target.type);
 }
 
 interface MenuItem {
@@ -159,6 +156,7 @@ export function createApp(root: HTMLElement, store: Store): App {
     }
     store.apply(() => setup, `Open ${file.name}`);
     store.select(null);
+    fitView();
   });
   const saveButton = h('button', { title: 'Save the setup as a JSON file' }, 'Save');
   saveButton.addEventListener('click', () => download(SAVE_NAME, serialiseSetup(store.get().setup)));
@@ -179,6 +177,8 @@ export function createApp(root: HTMLElement, store: Store): App {
     });
     return b;
   };
+  const fitButton = h('button', { title: 'Fit everything in view (or double-click empty bench space)' }, 'Fit');
+  fitButton.addEventListener('click', () => fitView());
   const raysToggle = toggleButton('Rays', 'showRays');
   const gaussianToggle = toggleButton('Gaussian', 'showGaussian');
 
@@ -195,13 +195,17 @@ export function createApp(root: HTMLElement, store: Store): App {
     undoButton,
     redoButton,
     h('span', { class: 'spacer' }),
+    fitButton,
+    h('span', { class: 'sep' }),
     h('span', { class: 'toolbar-label' }, 'Show'),
     h('div', { class: 'segmented', role: 'group', 'aria-label': 'Show' }, raysToggle, gaussianToggle),
   );
 
   // Panels
   const benchCanvas = h('canvas', { class: 'bench-canvas', 'aria-label': 'Optical bench' });
-  const bench = h('section', { class: 'panel bench' }, benchCanvas);
+  const benchTooltip = h('div', { class: 'bench-tooltip', role: 'status' });
+  benchTooltip.hidden = true;
+  const bench = h('section', { class: 'panel bench' }, benchCanvas, benchTooltip);
   const panel = (cls: string, title: string) => {
     const body = h('div', { class: 'panel-body' });
     const section = h('section', { class: `panel ${cls}` }, h('h2', {}, title), body);
@@ -240,22 +244,92 @@ export function createApp(root: HTMLElement, store: Store): App {
     redoButton.title = store.canRedo() ? `Redo ${store.redoLabel()} (${shortcut('Z', true)})` : 'Nothing to redo';
     raysToggle.setAttribute('aria-pressed', String(toggles.showRays));
     gaussianToggle.setAttribute('aria-pressed', String(toggles.showGaussian));
+    drawBenchNow();
     for (const fn of [...frameListeners]) fn(frame);
   }
   store.subscribe(requestFrame);
 
-  const resizeCanvas = () => {
+  // Bench: the view and hover change far more often than the setup, so they redraw only the canvas.
+  const benchCtx = benchCanvas.getContext('2d');
+  let view: View | null = null;
+  let hover: BenchHover | null = null;
+  let benchDrawPending: number | null = null;
+  const benchSize = (): [number, number] => [bench.clientWidth, bench.clientHeight];
+  function fitView() {
+    const { trace, gaussians } = results();
+    view = fitAll(store.get().setup, trace, ...benchSize(), gaussians);
+    requestBenchDraw();
+  }
+  const getView = (): View => {
+    const [width, height] = benchSize();
+    if (!view || view.widthPx < 2 || view.heightPx < 2) {
+      const { trace, gaussians } = results();
+      view = fitAll(store.get().setup, trace, width, height, gaussians);
+    } else if (view.widthPx !== width || view.heightPx !== height) view = resizeView(view, width, height);
+    return view;
+  };
+  /** Matches the canvas's pixel size to its CSS size and the device pixel ratio; true if it changed. */
+  const syncCanvasSize = (): boolean => {
     const dpr = window.devicePixelRatio || 1;
     const width = Math.max(1, Math.round(bench.clientWidth * dpr));
     const height = Math.max(1, Math.round(bench.clientHeight * dpr));
-    if (benchCanvas.width !== width || benchCanvas.height !== height) {
-      benchCanvas.width = width;
-      benchCanvas.height = height;
-      requestFrame();
-    }
+    if (benchCanvas.width === width && benchCanvas.height === height) return false;
+    benchCanvas.width = width;
+    benchCanvas.height = height;
+    return true;
   };
-  if (typeof ResizeObserver === 'function') new ResizeObserver(resizeCanvas).observe(bench);
-  resizeCanvas();
+  function renderTooltip() {
+    if (!hover) {
+      benchTooltip.hidden = true;
+      return;
+    }
+    const lines = hoverLines(store.get(), results().gaussians, hover.z, hover.y);
+    benchTooltip.replaceChildren(...lines.map((line, i) => h('div', { class: i === 0 ? 'pos' : '' }, line)));
+    benchTooltip.hidden = false;
+    const [width, height] = benchSize();
+    const left = hover.px + 14 + benchTooltip.offsetWidth > width ? hover.px - 14 - benchTooltip.offsetWidth : hover.px + 14;
+    const top = hover.py + 16 + benchTooltip.offsetHeight > height ? hover.py - 10 - benchTooltip.offsetHeight : hover.py + 16;
+    benchTooltip.style.left = `${Math.max(left, 0)}px`;
+    benchTooltip.style.top = `${Math.max(top, 0)}px`;
+  }
+  function drawBenchNow() {
+    if (benchDrawPending !== null) cancelAnimationFrame(benchDrawPending);
+    benchDrawPending = null;
+    if (!benchCtx) return;
+    syncCanvasSize();
+    const { trace, gaussians } = results();
+    drawBench(benchCtx, getView(), store.get(), trace, gaussians, {
+      ...toggles,
+      hoverZ: hover?.z ?? null,
+      hoverId: hover?.id ?? null,
+    });
+    renderTooltip();
+  }
+  function requestBenchDraw() {
+    if (benchDrawPending === null && !pending) benchDrawPending = requestAnimationFrame(drawBenchNow);
+  }
+  attachBenchInteraction(
+    benchCanvas,
+    store,
+    getView,
+    (v) => {
+      view = v;
+      requestBenchDraw();
+    },
+    {
+      onHover(next) {
+        hover = next;
+        requestBenchDraw();
+      },
+      onFit: fitView,
+    },
+  );
+  const onResize = () => {
+    if (syncCanvasSize()) requestBenchDraw();
+  };
+  if (typeof ResizeObserver === 'function') new ResizeObserver(onResize).observe(bench);
+  // Browser zoom changes the device pixel ratio without resizing the bench.
+  window.addEventListener('resize', onResize);
 
   window.addEventListener('keydown', (e) => {
     if (!(e.ctrlKey || e.metaKey) || e.altKey || isTyping(e.target)) return;
