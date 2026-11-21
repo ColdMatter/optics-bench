@@ -119,6 +119,7 @@ export interface RayPath {
   points: [number, number][];
   blockedBy: Id | null;
   final: Ray | null; // ray leaving the last optic it met; null if blocked
+  screenHits?: Record<Id, number>; // height at each screen passed; absent when none
 }
 export type TraceWarning =
   | { kind: 'overlap'; ids: [Id, Id] }

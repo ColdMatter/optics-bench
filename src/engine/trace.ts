@@ -110,20 +110,22 @@ export function traceRayCollecting(
   const ordered = isSorted(optics) ? optics : sortedByAxialStart(optics);
   const points: [number, number][] = [[start.z, start.y]];
   let ray = start;
+  let screenHits: Record<string, number> | undefined;
   for (const optic of ordered) {
     const result = interactOptic(optic, ray, glasses);
     onVisit?.(optic, ray, result);
+    if (optic.kind === 'screen' && result.ray) (screenHits ??= {})[optic.id] = result.ray.y;
     for (const w of result.warnings) onWarning?.(w);
     for (const p of result.points) points.push(p);
     if (!result.ray) {
-      return { wavelengthNm: start.wavelengthNm, points, blockedBy: optic.id, final: null };
+      return { wavelengthNm: start.wavelengthNm, points, blockedBy: optic.id, final: null, ...(screenHits && { screenHits }) };
     }
     ray = result.ray;
   }
   if (ray.dz > 0 && endZ > ray.z) {
     points.push([endZ, ray.y + ((endZ - ray.z) / ray.dz) * ray.dy]);
   }
-  return { wavelengthNm: start.wavelengthNm, points, blockedBy: null, final: ray };
+  return { wavelengthNm: start.wavelengthNm, points, blockedBy: null, final: ray, ...(screenHits && { screenHits }) };
 }
 
 function overlapWarnings(optics: Optic[]): TraceWarning[] {
@@ -146,7 +148,7 @@ function overlapWarnings(optics: Optic[]): TraceWarning[] {
 }
 
 const lookupCache = new WeakMap<Record<string, GlassData>, GlassLookup>();
-function lookupFor(glasses: Record<string, GlassData>): GlassLookup {
+export function lookupFor(glasses: Record<string, GlassData>): GlassLookup {
   let lookup = lookupCache.get(glasses);
   if (!lookup) {
     lookup = makeGlassLookup(glasses);
