@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "e2e": "npm run build && node e2e/smoke.mjs",
-    "glasses": "node scripts/build-glasses.mjs"
+    "glasses": "node scripts/build-glasses.mjs",
+    "lenses": "node scripts/fetch-thorlabs.mjs"
   },
   "devDependencies": {
     "jsdom": "^31.0.1",

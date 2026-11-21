@@ -1,0 +1,254 @@
+{
+ "AC254-030-A": {
+  "focalLengthMm": 30,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-030-a/20522-e0w.pdf?v=0116101813"
+ },
+ "AC254-040-A": {
+  "focalLengthMm": 40.1,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-040-a/ac254-040-a-e0w.pdf?v=1114060104"
+ },
+ "AC254-050-A": {
+  "focalLengthMm": 50.2,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-050-a/20526-e0w.pdf?v=0116101846"
+ },
+ "AC254-075-A": {
+  "focalLengthMm": 74.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-075-a/ac254-075-a-e0w.pdf?v=1114060105"
+ },
+ "AC254-100-A": {
+  "focalLengthMm": 100.1,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-a/20529-e0w.pdf?v=1114060107"
+ },
+ "AC254-125-A": {
+  "focalLengthMm": 125,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-125-a/ttn005496-e0w.pdf?v=0116101927"
+ },
+ "AC254-150-A": {
+  "focalLengthMm": 150,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-150-a/20530-e0w.pdf?v=0116101928"
+ },
+ "AC254-200-A": {
+  "focalLengthMm": 200.2,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-200-a/20531-e0w.pdf?v=0116101939"
+ },
+ "AC254-250-A": {
+  "focalLengthMm": 250,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-250-a/20532-e0w.pdf?v=0116101950"
+ },
+ "AC254-300-A": {
+  "focalLengthMm": 300.2,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-300-a/20533-e0w.pdf?v=0116101958"
+ },
+ "AC254-400-A": {
+  "focalLengthMm": 399.3,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-400-a/20534-e0w.pdf?v=0116102007"
+ },
+ "AC254-500-A": {
+  "focalLengthMm": 502.5,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-500-a/20535-e0w.pdf?v=0116102012"
+ },
+ "AC254-030-B": {
+  "focalLengthMm": 30.5,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-030-b/7402-e0w.pdf?v=0116101817"
+ },
+ "AC254-040-B": {
+  "focalLengthMm": 40,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-040-b/7404-e0w.pdf?v=0116101833"
+ },
+ "AC254-050-B": {
+  "focalLengthMm": 50.1,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-050-b/7406-e0w.pdf?v=0116101850"
+ },
+ "AC254-060-B": {
+  "focalLengthMm": 60.1,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-060-b/7407-e0w.pdf?v=0116101901"
+ },
+ "AC254-075-B": {
+  "focalLengthMm": 75,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-075-b/7408-e0w.pdf?v=0116101912"
+ },
+ "AC254-100-B": {
+  "focalLengthMm": 100,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-b/7409-e0w.pdf?v=0116101922"
+ },
+ "AC254-125-B": {
+  "focalLengthMm": 125,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-125-b/ttn005501-e0w.pdf?v=0116101927"
+ },
+ "AC254-150-B": {
+  "focalLengthMm": 149.2,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-150-b/7410-e0w.pdf?v=0116101933"
+ },
+ "AC254-200-B": {
+  "focalLengthMm": 200.2,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-200-b/7411-e0w.pdf?v=0116101938"
+ },
+ "AC254-250-B": {
+  "focalLengthMm": 247.3,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-250-b/7412-e0w.pdf?v=0116101957"
+ },
+ "AC254-300-B": {
+  "focalLengthMm": 300.6,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-300-b/7413-e0w.pdf?v=0116102002"
+ },
+ "AC254-400-B": {
+  "focalLengthMm": 400.4,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-400-b/7414-e0w.pdf?v=0116102007"
+ },
+ "AC254-500-B": {
+  "focalLengthMm": 499.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-500-b/7415-e0w.pdf?v=0116102011"
+ },
+ "LA1951": {
+  "focalLengthMm": 25.3,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1951/3245-e0w.pdf?v=0116121023"
+ },
+ "LA1805": {
+  "focalLengthMm": 29.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1805/3246-e0w.pdf?v=0116121005"
+ },
+ "LA1027": {
+  "focalLengthMm": 34.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1027/3247-e0w.pdf?v=0116120339"
+ },
+ "LA1422": {
+  "focalLengthMm": 39.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1422/3248-e0w.pdf?v=0116120717"
+ },
+ "LA1131": {
+  "focalLengthMm": 49.8,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1131/3249-e0w.pdf?v=0116120410"
+ },
+ "LA1134": {
+  "focalLengthMm": 59.8,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1134/3250-e0w.pdf?v=0116120423"
+ },
+ "LA1608": {
+  "focalLengthMm": 74.8,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1608/3251-e0w.pdf?v=0116120822"
+ },
+ "LA1509": {
+  "focalLengthMm": 99.7,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1509/3252-e0w.pdf?v=0116120755"
+ },
+ "LA1986": {
+  "focalLengthMm": 124.6,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1986/3253-e0w.pdf?v=1005123926"
+ },
+ "LA1433": {
+  "focalLengthMm": 149.5,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1433/3254-e0w.pdf?v=0116120723"
+ },
+ "LA1229": {
+  "focalLengthMm": 174.4,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1229/3255-e0w.pdf?v=0116120504"
+ },
+ "LA1708": {
+  "focalLengthMm": 199.3,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1708/3256-e0w.pdf?v=0116120938"
+ },
+ "LA1461": {
+  "focalLengthMm": 249.2,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1461/3257-e0w.pdf?v=0116120733"
+ },
+ "LA1484": {
+  "focalLengthMm": 299,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1484/3258-e0w.pdf?v=0116120750"
+ },
+ "LA1172": {
+  "focalLengthMm": 398.7,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1172/3259-e0w.pdf?v=0116120435"
+ },
+ "LA1908": {
+  "focalLengthMm": 498.3,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1908/3260-e0w.pdf?v=0116121018"
+ },
+ "LA1978": {
+  "focalLengthMm": 747.5,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1978/3261-e0w.pdf?v=0116121032"
+ },
+ "LA1464": {
+  "focalLengthMm": 996.7,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1464/3262-e0w.pdf?v=0116120741"
+ },
+ "AC508-075-A": {
+  "focalLengthMm": 74.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-075-a/20539-e0w.pdf?v=0116102022"
+ },
+ "AC508-100-A": {
+  "focalLengthMm": 99.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-100-a/20541-e0w.pdf?v=0116102042"
+ },
+ "AC508-150-A": {
+  "focalLengthMm": 150,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-150-a/20542-e0w.pdf?v=0116102052"
+ },
+ "AC508-200-A": {
+  "focalLengthMm": 200,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-200-a/20543-e0w.pdf?v=0116102115"
+ },
+ "AC508-250-A": {
+  "focalLengthMm": 250,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-250-a/20544-e0w.pdf?v=0116102123"
+ },
+ "AC508-300-A": {
+  "focalLengthMm": 300,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-300-a/20545-e0w.pdf?v=0116102129"
+ },
+ "AC508-400-A": {
+  "focalLengthMm": 400,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-400-a/20546-e0w.pdf?v=0116102140"
+ },
+ "AC508-500-A": {
+  "focalLengthMm": 500,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-500-a/20547-e0w.pdf?v=0116102145"
+ },
+ "AC508-750-A": {
+  "focalLengthMm": 750,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-750-a/20548-e0w.pdf?v=0116102155"
+ },
+ "AC508-1000-A": {
+  "focalLengthMm": 1000,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-1000-a/20549-e0w.pdf?v=0116102046"
+ },
+ "AC508-075-B": {
+  "focalLengthMm": 74.8,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-075-b/7419-e0w.pdf?v=0116102027"
+ },
+ "AC508-100-B": {
+  "focalLengthMm": 100.1,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-100-b/7421-e0w.pdf?v=0116102041"
+ },
+ "AC508-150-B": {
+  "focalLengthMm": 151.4,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-150-b/7422-e0w.pdf?v=0116102057"
+ },
+ "AC508-200-B": {
+  "focalLengthMm": 200,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-200-b/7423-e0w.pdf?v=0116102102"
+ },
+ "AC508-250-B": {
+  "focalLengthMm": 250.3,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-250-b/7424-e0w.pdf?v=0116102127"
+ },
+ "AC508-300-B": {
+  "focalLengthMm": 299.9,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-300-b/7425-e0w.pdf?v=0116102135"
+ },
+ "AC508-400-B": {
+  "focalLengthMm": 397,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-400-b/7426-e0w.pdf?v=0116102140"
+ },
+ "AC508-500-B": {
+  "focalLengthMm": 500.5,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-500-b/7427-e0w.pdf?v=0116102149"
+ },
+ "AC508-750-B": {
+  "focalLengthMm": 750.1,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-750-b/7428-e0w.pdf?v=0116102154"
+ },
+ "AC508-1000-B": {
+  "focalLengthMm": 999,
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-1000-b/7429-e0w.pdf?v=0116102052"
+ }
+}

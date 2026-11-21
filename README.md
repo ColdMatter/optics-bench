@@ -18,3 +18,12 @@ npm run e2e     # build, then smoke test
 git clone --depth 1 https://github.com/polyanskiy/refractiveindex.info-database
 npm run glasses -- <path-to-clone>
 ```
+
+## Lens catalogue
+
+`src/data/lenses.json` holds the Thorlabs lenses parsed from their Zemax files. The Thorlabs focal-shift curves in `src/data/thorlabs-focal-shift/` validate the tracer against them. To regenerate both (needs Playwright with Chromium, and `pdftotext` from Poppler):
+
+```
+npm run lenses              # download into scripts/vendor-cache/, then rebuild
+npm run lenses -- --offline # rebuild from the cache
+```

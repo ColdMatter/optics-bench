@@ -1,0 +1,1874 @@
+[
+ {
+  "partNumber": "AC254-030-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-030-a/20522-s03.zmx?v=0116101812",
+  "surfaces": [
+   {
+    "curvature": 0.0478697941598851,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 12,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0597728631201435,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.012531328320802,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-040-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-040-a/ac254-040-a-s03.zmx?v=1114060104",
+  "surfaces": [
+   {
+    "curvature": 0.0422654268808115,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 10,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0497760079641613,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "N-SF5"
+   },
+   {
+    "curvature": -0.0173370319001387,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-050-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-050-a/20526-s03.zmx?v=0116101845",
+  "surfaces": [
+   {
+    "curvature": 0.02999400119976,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 9,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0448833034111311,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "SF10"
+   },
+   {
+    "curvature": -0.0034355996839248,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-075-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-075-a/ac254-075-a-s03.zmx?v=1114060105",
+  "surfaces": [
+   {
+    "curvature": 0.0214868929952729,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 7,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0294898260100265,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "N-SF5"
+   },
+   {
+    "curvature": -0.0104668201800293,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-100-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-a/20529-s03.zmx?v=1114060106",
+  "surfaces": [
+   {
+    "curvature": 0.0159362549800797,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0218770509735288,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "SF5"
+   },
+   {
+    "curvature": -0.0077984870935039,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-125-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-125-a/ttn005496-s03.zmx?v=0116101931",
+  "surfaces": [
+   {
+    "curvature": 0.012881649822604327,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4.003571813499,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.017882586647192434,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.833474807849,
+    "glassAfter": "N-SF5"
+   },
+   {
+    "curvature": -0.0062180546030157794,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-150-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-150-a/20530-s03.zmx?v=0116101927",
+  "surfaces": [
+   {
+    "curvature": 0.0109146474568871,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 5.7,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.01499700059988,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.2,
+    "glassAfter": "SF5"
+   },
+   {
+    "curvature": -0.0050581689428427,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-200-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-200-a/20531-s03.zmx?v=0116101938",
+  "surfaces": [
+   {
+    "curvature": 0.0129198966408269,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-SSK5"
+   },
+   {
+    "curvature": -0.0114194358798675,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "LAFN7"
+   },
+   {
+    "curvature": 0.0034355996839248,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-250-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-250-a/20532-s03.zmx?v=0116101948",
+  "surfaces": [
+   {
+    "curvature": 0.0072944780800934,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0089678055779751,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0021777003484321,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-300-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-300-a/20533-s03.zmx?v=0116101957",
+  "surfaces": [
+   {
+    "curvature": 0.0060532687651332,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0072944780800934,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0017940437746681,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-400-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-400-a/20534-s03.zmx?v=0116102006",
+  "surfaces": [
+   {
+    "curvature": 0.0045495905368517,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0055081244836133,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.001354096140826,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-500-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-500-a/20535-s03.zmx?v=0116102011",
+  "surfaces": [
+   {
+    "curvature": 0.0029647198339757,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0053547523427041,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0017940437746681,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-030-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-030-b/7402-s03.zmx?v=0116101817",
+  "surfaces": [
+   {
+    "curvature": 0.0474158368895211,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 12,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0618046971569839,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0126454223571067,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-040-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-040-b/7404-s03.zmx?v=0116101836",
+  "surfaces": [
+   {
+    "curvature": 0.0382848392036753,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 10,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0469924812030075,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0072944780800934,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-050-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-050-b/7406-s03.zmx?v=0116101850",
+  "surfaces": [
+   {
+    "curvature": 0.029806259314456,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 7.5,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0369685767097967,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.8,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0079617834394904,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-060-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-060-b/7407-s03.zmx?v=0116101903",
+  "surfaces": [
+   {
+    "curvature": 0.0253292806484296,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 6,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0303030303030303,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.7,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0060532687651332,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-075-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-075-b/7408-s03.zmx?v=0116101912",
+  "surfaces": [
+   {
+    "curvature": 0.02710027100271,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 5,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0237135404315864,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.6,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": 0.0023934897079943,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-100-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-b/7409-s03.zmx?v=0116101924",
+  "surfaces": [
+   {
+    "curvature": 0.01499700059988,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0186219739292365,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0038549015072665,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-125-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-125-b/ttn005501-s03.zmx?v=0116101929",
+  "surfaces": [
+   {
+    "curvature": 0.022495974708683284,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 5.999999397069,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.01809424573752063,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 6.000040431431,
+    "glassAfter": "N-SF8"
+   },
+   {
+    "curvature": 0.0010747239793501915,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-150-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-150-b/7410-s03.zmx?v=0116101933",
+  "surfaces": [
+   {
+    "curvature": 0.0119617224880383,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0111944475540132,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 3.5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0007515971439309,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-200-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-200-b/7411-s03.zmx?v=0116101938",
+  "surfaces": [
+   {
+    "curvature": 0.0093976130062964,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.010350895352448,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "SF10"
+   },
+   {
+    "curvature": 0.0005,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-250-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-250-b/7412-s03.zmx?v=0116101959",
+  "surfaces": [
+   {
+    "curvature": 0.0192307692307692,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "SF5"
+   },
+   {
+    "curvature": -0.0153115908742918,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": 0.0089678055779751,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-300-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-300-b/7413-s03.zmx?v=0116102005",
+  "surfaces": [
+   {
+    "curvature": 0.016025641025641,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "SF5"
+   },
+   {
+    "curvature": -0.0129198966408269,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": 0.0074626865671642,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-400-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-400-b/7414-s03.zmx?v=0116102009",
+  "surfaces": [
+   {
+    "curvature": 0.0119617224880383,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 3.5,
+    "glassAfter": "SF5"
+   },
+   {
+    "curvature": -0.0093976130062964,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 1.8,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": 0.0055081244836133,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC254-500-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-500-b/7415-s03.zmx?v=0116102013",
+  "surfaces": [
+   {
+    "curvature": 0.0165016501650165,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4,
+    "glassAfter": "SF10"
+   },
+   {
+    "curvature": -0.0159362549800797,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": 0.0114194358798675,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1951",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1951/3245-s03.zmx?v=0116121025",
+  "surfaces": [
+   {
+    "curvature": 0.0764525993883792,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 11.74,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1805",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1805/3246-s03.zmx?v=0116121004",
+  "surfaces": [
+   {
+    "curvature": 0.0647249190938511,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 8.64,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1027",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1027/3247-s03.zmx?v=0116120338",
+  "surfaces": [
+   {
+    "curvature": 0.0554938956714761,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 7.23,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1422",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1422/3248-s03.zmx?v=0116120717",
+  "surfaces": [
+   {
+    "curvature": 0.0485436893203883,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 6.37,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1131",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1131/3249-s03.zmx?v=0116120411",
+  "surfaces": [
+   {
+    "curvature": 0.0388349514563107,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 5.34,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1134",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1134/3250-s03.zmx?v=0116120422",
+  "surfaces": [
+   {
+    "curvature": 0.0323624595469256,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4.73,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1608",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1608/3251-s03.zmx?v=0116120821",
+  "surfaces": [
+   {
+    "curvature": 0.0258866166192079,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 4.14,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1509",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1509/3252-s02.zar?v=0116120754",
+  "surfaces": [
+   {
+    "curvature": 0.0194174757281553,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 3.59,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1986",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1986/3253-s03.zmx?v=1006060053",
+  "surfaces": [
+   {
+    "curvature": 0.0155327741534638,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 3.26,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1433",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1433/3254-s03.zmx?v=0116120722",
+  "surfaces": [
+   {
+    "curvature": 0.0129433083096039,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 3.05,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1229",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1229/3255-s03.zmx?v=0116120504",
+  "surfaces": [
+   {
+    "curvature": 0.0110950848773993,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.89,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1708",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1708/3256-s03.zmx?v=0116120940",
+  "surfaces": [
+   {
+    "curvature": 0.0097077953596738,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.78,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1461",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1461/3257-s03.zmx?v=0116120735",
+  "surfaces": [
+   {
+    "curvature": 0.0077657839558903,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.62,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1484",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1484/3258-s03.zmx?v=0116120752",
+  "surfaces": [
+   {
+    "curvature": 0.006471654154802,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.52,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1172",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1172/3259-s03.zmx?v=0116120434",
+  "surfaces": [
+   {
+    "curvature": 0.0048536620880454,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.39,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1908",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1908/3260-s03.zmx?v=0116121021",
+  "surfaces": [
+   {
+    "curvature": 0.0038828919779452,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.31,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1978",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1978/3261-s03.zmx?v=0116121032",
+  "surfaces": [
+   {
+    "curvature": 0.0025885946519634,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.2,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "LA1464",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/l/la/la1/la1464/3262-s03.zmx?v=0116120740",
+  "surfaces": [
+   {
+    "curvature": 0.0019414459889726,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 2.15,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 12.7,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-075-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-075-a/20539-s03.zmx?v=0116102024",
+  "surfaces": [
+   {
+    "curvature": 0.0196850393700787,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 20,
+    "glassAfter": "E-BAF11"
+   },
+   {
+    "curvature": -0.0239865675221876,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 3,
+    "glassAfter": "N-SF11"
+   },
+   {
+    "curvature": -0.0040371417036738,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-100-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-100-a/20541-s03.zmx?v=0116102041",
+  "surfaces": [
+   {
+    "curvature": 0.0140607424071991,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 16,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0226398007697532,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4,
+    "glassAfter": "SF10"
+   },
+   {
+    "curvature": -0.0027540622418067,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-150-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-150-a/20542-s03.zmx?v=0116102051",
+  "surfaces": [
+   {
+    "curvature": 0.0120221207020918,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 12,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0138657792567942,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 3,
+    "glassAfter": "SF5"
+   },
+   {
+    "curvature": -0.0040371417036738,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-200-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-200-a/20543-s03.zmx?v=0116102104",
+  "surfaces": [
+   {
+    "curvature": 0.0091024940833788,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 8.5,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0107399849640211,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0026578073089701,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-250-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-250-a/20544-s03.zmx?v=0116102122",
+  "surfaces": [
+   {
+    "curvature": 0.0072944780800934,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 7.5,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.00895335303071,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0021777003484321,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-300-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-300-a/20545-s03.zmx?v=0116102127",
+  "surfaces": [
+   {
+    "curvature": 0.0061919504643963,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 6,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0074626865671642,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0017217630853994,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-400-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-400-a/20546-s03.zmx?v=0116102139",
+  "surfaces": [
+   {
+    "curvature": 0.0045495905368517,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 5,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0053547523427041,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0013157894736842,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-500-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-500-a/20547-s03.zmx?v=0116102144",
+  "surfaces": [
+   {
+    "curvature": 0.0036643459142543,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 5,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0042685789900542,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0010309278350515,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-750-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-750-a/20548-s03.zmx?v=0116102154",
+  "surfaces": [
+   {
+    "curvature": 0.0023934897079943,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4.5,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0029761904761905,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0007515971439309,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-1000-A",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-1000-a/20549-s03.zmx?v=0116102045",
+  "surfaces": [
+   {
+    "curvature": 0.001354096140826,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4,
+    "glassAfter": "N-BK7"
+   },
+   {
+    "curvature": -0.0025119316754584,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "SF2"
+   },
+   {
+    "curvature": -0.0009772305286817,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-075-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-075-b/7419-s03.zmx?v=0116102028",
+  "surfaces": [
+   {
+    "curvature": 0.0193050193050193,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 12,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0107399849640211,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0034355996839248,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-100-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-100-b/7421-s03.zmx?v=0116102043",
+  "surfaces": [
+   {
+    "curvature": 0.0152045005321575,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 13,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0178635226866738,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0035644270183568,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-150-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-150-b/7422-s03.zmx?v=0116102059",
+  "surfaces": [
+   {
+    "curvature": 0.0089118616879066,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 8.2,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0104231811548885,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0030759766225777,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-200-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-200-b/7423-s03.zmx?v=0116102108",
+  "surfaces": [
+   {
+    "curvature": 0.0074626865671642,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 8.2,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0091575091575092,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 5,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0019409937888199,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-250-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-250-b/7424-s03.zmx?v=0116102129",
+  "surfaces": [
+   {
+    "curvature": 0.008249463784854,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 6.6,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0068427535240181,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2.6,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": 0.0008091269520188,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-300-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-300-b/7425-s03.zmx?v=0116102134",
+  "surfaces": [
+   {
+    "curvature": 0.0049554013875124,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 6.6,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0061919504643963,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2.6,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0013157894736842,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-400-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-400-b/7426-s03.zmx?v=0116102139",
+  "surfaces": [
+   {
+    "curvature": 0.0035644270183568,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4.5,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0048076923076923,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2.6,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0011641443538999,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-500-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-500-b/7427-s03.zmx?v=0116102149",
+  "surfaces": [
+   {
+    "curvature": 0.0028843380444188,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4.5,
+    "glassAfter": "N-LAK22"
+   },
+   {
+    "curvature": -0.0038549015072665,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2.6,
+    "glassAfter": "N-SF6HT"
+   },
+   {
+    "curvature": -0.0008830801836807,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-750-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-750-b/7428-s03.zmx?v=0116102156",
+  "surfaces": [
+   {
+    "curvature": 0.0026539278131635,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4.2,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0034355996839248,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2.5,
+    "glassAfter": "SF10"
+   },
+   {
+    "curvature": 0.0003436426116838,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ },
+ {
+  "partNumber": "AC508-1000-B",
+  "vendor": "Thorlabs",
+  "source": "zmx",
+  "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-1000-b/7429-s03.zmx?v=0116102055",
+  "surfaces": [
+   {
+    "curvature": 0.0020230629172567,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 4.2,
+    "glassAfter": "N-BAF10"
+   },
+   {
+    "curvature": -0.0025119316754584,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 2.8,
+    "glassAfter": "SF10"
+   },
+   {
+    "curvature": 0.0002906976744186,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 25.4,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ }
+]
