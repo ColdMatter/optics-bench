@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createStore, loadAutosave } from '../src/ui/store';
+import { createStore, loadAutosave, readAutosave } from '../src/ui/store';
 import type { Setup } from '../src/engine/types';
 
 const initial: Setup = {
@@ -125,9 +125,35 @@ describe('autosave', () => {
     expect(screenZ(loadAutosave(storage)!)).toBe(100);
   });
 
-  test('a corrupt autosave is ignored', () => {
+  test('a corrupt autosave is ignored, with the reason', () => {
     const storage = new MemoryStorage();
     storage.setItem('optics-sim/setup/v1', '{"version": 1, "sources": "nope"}');
     expect(loadAutosave(storage)).toBeNull();
+    expect(readAutosave(storage)).toEqual({ error: 'sources: expected an array' });
+  });
+
+  test('nothing stored reads as null', () => expect(readAutosave(new MemoryStorage())).toBeNull());
+
+  test('an unreadable autosave is backed up, not lost, when a store starts', () => {
+    const storage = new MemoryStorage();
+    const newer = '{"version": 2, "sources": []}';
+    storage.setItem('optics-sim/setup/v1', newer);
+    createStore(initial, storage);
+    expect(storage.getItem('optics-sim/setup/v1/unreadable')).toBe(newer);
+    expect(loadAutosave(storage)).toEqual(initial);
+  });
+
+  test('if the backup cannot be written the unreadable autosave is left alone', () => {
+    class NoBackupStorage extends MemoryStorage {
+      override setItem(key: string, value: string) {
+        if (key.endsWith('/unreadable')) throw new Error('quota');
+        super.setItem(key, value);
+      }
+    }
+    const storage = new NoBackupStorage();
+    storage.setItem('optics-sim/setup/v1', 'not json');
+    const store = createStore(initial, storage);
+    store.apply(moveScreen(120), 'move');
+    expect(storage.getItem('optics-sim/setup/v1')).toBe('not json');
   });
 });

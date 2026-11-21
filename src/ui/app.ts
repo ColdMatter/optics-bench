@@ -95,7 +95,7 @@ function menuButton(label: string, items: MenuItem[]): HTMLElement {
   return wrapper;
 }
 
-function showMessage(title: string, message: string): void {
+export function showMessage(title: string, message: string): void {
   const ok = h('button', { class: 'primary', value: 'ok' }, 'OK');
   const dialog = h('dialog', { class: 'message' }, h('h3', {}, title), h('p', {}, message), h('form', { method: 'dialog' }, ok));
   dialog.addEventListener('close', () => dialog.remove());

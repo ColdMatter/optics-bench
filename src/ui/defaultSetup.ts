@@ -10,14 +10,12 @@ function part(partNumber: string): LensPrescription {
 
 /**
  * A point source relayed by two achromats onto a screen (flat side of the first towards the
- * source, so it collimates), preceded 20 mm above the axis by a Gaussian beam through a 1:2
- * ideal-lens telescope. Every element blocks light outside its aperture, so the beam ends at
- * the first achromat's plane; placing the telescope after the screen instead would block the
- * point source's rays and leave it with no focus.
+ * source, so it collimates). Upstream on the same axis, a Gaussian beam is expanded 1:2 by two
+ * ideal lenses and then continues through the achromats; the point source starts after the
+ * ideal lenses, so they do not touch its rays.
  */
 export function defaultSetup(): Setup {
   const placed = { decentreMm: 0, tiltDeg: 0 };
-  const beamHeightMm = 20;
   return {
     version: 1,
     sources: [
@@ -27,7 +25,7 @@ export function defaultSetup(): Setup {
         id: newId(),
         label: 'S2',
         z: -300,
-        y: beamHeightMm,
+        y: 0,
         wavelengthsNm: [780],
         angleDeg: 0,
         waistRadiusMm: 0.5,
@@ -36,8 +34,8 @@ export function defaultSetup(): Setup {
       },
     ],
     optics: [
-      { kind: 'ideal', id: newId(), label: 'L1', z: -250, decentreMm: beamHeightMm, tiltDeg: 0, focalLengthMm: 50, apertureMm: 10 },
-      { kind: 'ideal', id: newId(), label: 'L2', z: -100, decentreMm: beamHeightMm, tiltDeg: 0, focalLengthMm: 100, apertureMm: 10 },
+      { kind: 'ideal', id: newId(), label: 'L1', z: -250, ...placed, focalLengthMm: 50, apertureMm: 10 },
+      { kind: 'ideal', id: newId(), label: 'L2', z: -100, ...placed, focalLengthMm: 100, apertureMm: 10 },
       { kind: 'lens', id: newId(), label: 'L3', z: 97, ...placed, prescription: part('AC254-100-B'), flipped: true },
       { kind: 'lens', id: newId(), label: 'L4', z: 145, ...placed, prescription: part('AC254-150-B'), flipped: false },
       { kind: 'screen', id: newId(), label: 'Screen 1', z: 297.2 },

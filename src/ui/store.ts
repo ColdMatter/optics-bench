@@ -22,6 +22,7 @@ export interface Store {
 }
 
 const AUTOSAVE_KEY = 'optics-sim/setup/v1';
+const UNREADABLE_KEY = `${AUTOSAVE_KEY}/unreadable`;
 
 function browserStorage(): Storage | null {
   try {
@@ -31,13 +32,39 @@ function browserStorage(): Storage | null {
   }
 }
 
-export function loadAutosave(storage: Storage | null = browserStorage()): Setup | null {
-  if (!storage) return null;
+function storedText(storage: Storage | null): string | null {
   try {
-    const text = storage.getItem(AUTOSAVE_KEY);
-    return text === null ? null : parseSetup(text);
+    return storage?.getItem(AUTOSAVE_KEY) ?? null;
   } catch {
     return null;
+  }
+}
+
+/** The autosaved setup, or why it could not be read (e.g. saved by a newer build); null if none. */
+export function readAutosave(storage: Storage | null = browserStorage()): { setup: Setup } | { error: string } | null {
+  const text = storedText(storage);
+  if (text === null) return null;
+  try {
+    return { setup: parseSetup(text) };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+export function loadAutosave(storage: Storage | null = browserStorage()): Setup | null {
+  const saved = readAutosave(storage);
+  return saved && 'setup' in saved ? saved.setup : null;
+}
+
+/** Keeps an unreadable autosave under a separate key; false if it could not be kept. */
+function backUpUnreadable(storage: Storage | null): boolean {
+  const saved = readAutosave(storage);
+  if (!saved || 'setup' in saved) return true;
+  try {
+    storage!.setItem(UNREADABLE_KEY, storedText(storage)!);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -59,7 +86,9 @@ interface Step {
   label: string;
 }
 
-export function createStore(initial: Setup, storage: Storage | null = browserStorage()): Store {
+export function createStore(initial: Setup, storageIn: Storage | null = browserStorage()): Store {
+  // Overwriting an autosave we could neither read nor back up would lose someone's work.
+  const storage = backUpUnreadable(storageIn) ? storageIn : null;
   let state: AppState = { setup: initial, selectedId: null };
   const past: Step[] = [];
   const future: Step[] = [];
