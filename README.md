@@ -1,6 +1,53 @@
 # Optics bench simulator
 
-A standalone 2D optics bench simulator that runs in the browser. `npm run build` produces a single `dist/index.html` that opens from disk with no server.
+A standalone 2D optics bench simulator that runs in the browser. `npm run build` produces a single `dist/index.html` that opens from disk with no server. It has no connection to pytweezer; it only lives in this repository.
+
+## What it does
+
+- Places sources (point, collimated, Gaussian) and optics (catalogue lenses, ideal thin lenses, SLMs, apertures, screens) on an unfolded optical axis: z along the axis, y off it, light running left to right.
+- Traces real lenses surface by surface with Snell's law and the glass index at each wavelength, so chromatic and off-axis aberrations come from the physics. Ideal lenses are achromatic.
+- Propagates Gaussian beams through the paraxial (ABCD) behaviour of the real surfaces and draws the ±w(z) envelope.
+- Treats an SLM as a 1D phase profile that bends each ray by the local phase gradient.
+- Reads out paraxial and best focus per wavelength, the focal shift between wavelengths, Gaussian waists and screen spot statistics.
+- Solves for lens positions that meet Gaussian beam-size targets.
+
+It does not do:
+
+- **Skew rays.** Tracing is meridional only. For off-axis sources it shows the tangential behaviour, and the readouts say so. Sagittal focus and astigmatism are not computed.
+- **Wave optics.** No interference, diffraction patterns or multi-spot SLM holograms.
+- **Folded geometry.** No mirrors, beamsplitters or a top-down breadboard view.
+- **Non-sequential effects** (ghosts, back-reflections), polarisation, coatings, transmission losses or tolerancing.
+
+Gaussian readouts are marked unreliable when the beam fills more than 80 % of an element's clear aperture, or when it meets an element tilted by more than 3°.
+
+Each lens carries the source of its prescription: a Zemax file (`zmx`) or values read off the vendor's drawing (`drawing`). Every bundled lens comes from a Zemax file. Absolute focus positions involving a `drawing` lens are labelled "approx.", because drawings round radii and thicknesses. Focal shifts are not affected and are not labelled.
+
+## Opening it
+
+Build it once (below), then open `dist/index.html` in any modern browser, by double-clicking it or from `file://`. The file is self-contained, so it can be copied anywhere. The setup is autosaved in the browser's storage, so it is still there when you reopen the page. **Save** and **Open…** write and read setup files (format below).
+
+## Controls
+
+| On the bench | Does |
+| --- | --- |
+| Wheel | Zoom both axes about the cursor |
+| Shift + wheel | Zoom y only |
+| Drag empty space | Pan |
+| Drag an element | Move it along z (hold Shift as well to snap to whole mm) |
+| Alt + drag an element | Move its y / decentre |
+| Click | Select (empty space clears the selection) |
+| Double-click empty space, or **Fit** | Fit everything in view |
+| Hover | Shows z, y and w(z) of each Gaussian beam at the cursor |
+| Delete | Remove the selected element |
+| Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y | Undo / redo (⌘ on a Mac) |
+
+Every value can also be typed into the elements table or the properties panel. Editing in one place updates the others.
+
+## Importing a lens
+
+**Add optic ▸ Catalogue lens…** opens the bundled catalogue, which you can search by part number or focal length. **Add** inserts the lens after the selected element. For a part that isn't bundled, use **Import .zmx…** and pick the vendor's Zemax file. A file the tracer can't represent (coordinate breaks, mirrors, surface types such as toroidal) is rejected with a message naming the surface. Inch units and UTF-16 files are read normally. If the file names a glass that isn't bundled, pick a substitute from the bundled glasses or type a constant index. The choice is saved with the setup.
+
+## Development
 
 ```
 npm install
@@ -9,6 +56,8 @@ npm run build   # type-check and build dist/index.html
 npm test        # unit tests
 npm run e2e     # build, then smoke test
 ```
+
+The smoke test drives the built page in Playwright's Chromium. Download that browser once with `npx playwright install chromium`.
 
 ## Glass data
 

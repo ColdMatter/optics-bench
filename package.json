@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "jsdom": "^31.0.1",
+    "playwright": "^1.65.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vite-plugin-singlefile": "^2.3.4",
