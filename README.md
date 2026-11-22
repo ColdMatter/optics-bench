@@ -1,6 +1,6 @@
 # Optics bench simulator
 
-A standalone 2D optics bench simulator that runs in the browser. `npm run build` produces a single `dist/index.html` that opens from disk with no server. It has no connection to pytweezer; it only lives in this repository.
+A standalone 2D optics bench simulator that runs in the browser. `npm run build` produces a single `dist/index.html` that opens from disk with no server. It was written for the CaF/Rb tweezer experiments in the ColdMatter group but has no dependency on their lab software.
 
 ## What it does
 
