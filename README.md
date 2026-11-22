@@ -47,6 +47,10 @@ Every value can also be typed into the elements table or the properties panel. E
 
 **Add optic ▸ Catalogue lens…** opens the bundled catalogue, which you can search by part number or focal length. **Add** inserts the lens after the selected element. For a part that isn't bundled, use **Import .zmx…** and pick the vendor's Zemax file. A file the tracer can't represent (coordinate breaks, mirrors, surface types such as toroidal) is rejected with a message naming the surface. Inch units and UTF-16 files are read normally. If the file names a glass that isn't bundled, pick a substitute from the bundled glasses or type a constant index. The choice is saved with the setup.
 
+## Examples
+
+`examples/` holds setups of the CaF/Rb tweezer experiment: the 852 nm tweezer path, Rb imaging, and the ways of bringing CaF at 606 nm into focus. Its README says what each one shows and where the numbers come from.
+
 ## Development
 
 ```

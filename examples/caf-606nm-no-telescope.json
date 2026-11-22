@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "point",
+      "id": "atoms",
+      "label": "Atoms",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        780,
+        606
+      ],
+      "coneHalfAngleDeg": 33.367,
+      "rayCount": 15
+    }
+  ],
+  "optics": [
+    {
+      "kind": "lens",
+      "id": "asphere",
+      "label": "Asphere",
+      "z": 9.036,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "flipped": true,
+      "prescription": {
+        "partNumber": "AHL15-12 (model)",
+        "vendor": "Asphericon",
+        "source": "drawing",
+        "sourceRef": "Model, not the vendor prescription: S-LAH64, EFL 12 mm and WD 9.0 mm at 780 nm, so tc = 5.33 mm; curved face computed for a perfect 780 nm focus (2026-11-20 lab-book note on chromatic aberrations in tweezer imaging)",
+        "surfaces": [
+          {
+            "curvature": 0.10726446458278983,
+            "conic": -0.626,
+            "asphere": [
+              -5.484974600270868e-9,
+              -1.4842456917116983e-7,
+              -1.0000949744899513e-9,
+              -3.3653445380112777e-12,
+              8.290749728868796e-15,
+              2.3174071643047175e-17
+            ],
+            "semiDiameterMm": 7.5,
+            "thicknessToNextMm": 5.33,
+            "glassAfter": "S-LAH64"
+          },
+          {
+            "curvature": 0,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 7.5,
+            "thicknessToNextMm": 0,
+            "glassAfter": null
+          }
+        ]
+      }
+    },
+    {
+      "kind": "lens",
+      "id": "objective",
+      "label": "Objective",
+      "z": 504.366,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "flipped": false,
+      "prescription": {
+        "partNumber": "AC508-400-B",
+        "vendor": "Thorlabs",
+        "source": "zmx",
+        "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-400-b/7426-s03.zmx?v=0116102139",
+        "surfaces": [
+          {
+            "curvature": 0.0035644270183568,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 25.4,
+            "thicknessToNextMm": 4.5,
+            "glassAfter": "N-LAK22"
+          },
+          {
+            "curvature": -0.0048076923076923,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 25.4,
+            "thicknessToNextMm": 2.6,
+            "glassAfter": "N-SF6HT"
+          },
+          {
+            "curvature": -0.0011641443538999,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 25.4,
+            "thicknessToNextMm": 0,
+            "glassAfter": null
+          }
+        ]
+      }
+    },
+    {
+      "kind": "screen",
+      "id": "camera",
+      "label": "Camera",
+      "z": 864.2
+    }
+  ],
+  "glasses": {}
+}
