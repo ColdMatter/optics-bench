@@ -685,6 +685,19 @@ dialog.message form {
   text-align: right;
 }
 
+dialog.message .save-name {
+  display: block;
+  width: 360px;
+  max-width: 100%;
+  margin-bottom: 14px;
+}
+
+dialog.message .buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 /* Readouts */
 
 .readouts-wrap {

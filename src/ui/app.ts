@@ -100,6 +100,49 @@ export function showMessage(title: string, message: string): void {
   dialog.showModal();
 }
 
+interface WritableFile {
+  write(data: string): Promise<void>;
+  close(): Promise<void>;
+}
+interface SaveHandle {
+  name: string;
+  createWritable(): Promise<WritableFile>;
+}
+type SaveFilePicker = (options: {
+  suggestedName: string;
+  types: { description: string; accept: Record<string, string[]> }[];
+}) => Promise<SaveHandle>;
+
+/** The browser's native save dialog (Chrome and Edge); Firefox and Safari don't have one. */
+const nativeSavePicker = (): SaveFilePicker | undefined =>
+  (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker?.bind(window);
+
+const withJsonExtension = (name: string) => (/\.json$/i.test(name) ? name : `${name}.json`);
+
+/** Asks for a file name in the page; null if cancelled. */
+function askFileName(suggested: string): Promise<string | null> {
+  const input = h('input', { type: 'text', class: 'save-name', required: true, 'aria-label': 'File name', autocomplete: 'off', spellcheck: 'false' });
+  input.value = suggested;
+  const cancel = h('button', { type: 'button' }, 'Cancel');
+  const save = h('button', { class: 'primary', value: 'save' }, 'Save');
+  const dialog = h(
+    'dialog',
+    { class: 'message' },
+    h('h3', {}, 'Save setup as'),
+    h('form', { method: 'dialog' }, input, h('div', { class: 'buttons' }, cancel, save)),
+  );
+  cancel.addEventListener('click', () => dialog.close('cancel'));
+  document.body.append(dialog);
+  dialog.showModal();
+  input.setSelectionRange(0, suggested.replace(/\.json$/i, '').length);
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => {
+      dialog.remove();
+      resolve(dialog.returnValue === 'save' ? withJsonExtension(input.value.trim()) : null);
+    });
+  });
+}
+
 function download(name: string, text: string): void {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const a = h('a', { href: url, download: name });
@@ -143,6 +186,8 @@ export function createApp(root: HTMLElement, store: Store): App {
     ...(['ideal', 'slm', 'aperture', 'screen'] as const).map((kind) => ({ label: kindNames[kind], action: () => addOptic(kind) })),
   ]);
 
+  // The name Save suggests: the last file opened or saved.
+  let fileName = SAVE_NAME;
   const openButton = h('button', { title: 'Open a setup file' }, 'Open…');
   openButton.addEventListener('click', async () => {
     const file = await pickFile('.json,application/json');
@@ -154,12 +199,39 @@ export function createApp(root: HTMLElement, store: Store): App {
       showMessage(`Could not open ${file.name}`, (e as Error).message);
       return;
     }
+    fileName = file.name;
     store.apply(() => setup, `Open ${file.name}`);
     store.select(null);
     fitView();
   });
-  const saveButton = h('button', { title: 'Save the setup as a JSON file' }, 'Save');
-  saveButton.addEventListener('click', () => download(SAVE_NAME, serialiseSetup(store.get().setup)));
+  const saveButton = h('button', { title: 'Save the setup as a JSON file' }, 'Save…');
+  saveButton.addEventListener('click', async () => {
+    const text = serialiseSetup(store.get().setup);
+    const picker = nativeSavePicker();
+    if (picker) {
+      let handle: SaveHandle | null = null;
+      try {
+        handle = await picker({ suggestedName: fileName, types: [{ description: 'Optics setup', accept: { 'application/json': ['.json'] } }] });
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') return;
+      }
+      if (handle) {
+        try {
+          const writable = await handle.createWritable();
+          await writable.write(text);
+          await writable.close();
+          fileName = handle.name;
+        } catch (e) {
+          showMessage(`Could not save ${handle.name}`, (e as Error).message);
+        }
+        return;
+      }
+    }
+    const name = await askFileName(fileName);
+    if (name === null) return;
+    fileName = name;
+    download(name, text);
+  });
 
   const undoButton = h('button', {}, 'Undo');
   const redoButton = h('button', {}, 'Redo');

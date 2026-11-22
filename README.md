@@ -24,7 +24,7 @@ Each lens carries the source of its prescription: a Zemax file (`zmx`) or values
 
 ## Opening it
 
-Build it once (below), then open `dist/index.html` in any modern browser, by double-clicking it or from `file://`. The file is self-contained, so it can be copied anywhere. The setup is autosaved in the browser's storage, so it is still there when you reopen the page. **Save** and **Open…** write and read setup files (format below).
+Build it once (below), then open `dist/index.html` in any modern browser, by double-clicking it or from `file://`. The file is self-contained, so it can be copied anywhere. The setup is autosaved in the browser's storage, so it is still there when you reopen the page. **Save…** asks where to save the setup file and what to call it: Chrome and Edge open the system save dialog, other browsers ask for a name and download the file. **Open…** reads one back (format below).
 
 ## Controls
 
