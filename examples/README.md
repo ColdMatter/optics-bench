@@ -1,6 +1,20 @@
 # Example setups
 
-Open any of these with **Open…** in the app. They model the CaF/Rb tweezer experiment as described in the lab-book note *2026-11-20 Chromatic abberations in tweezer imaging* (CaFMOT-LabBook, `Daily Notes/2026/11-Nov/20/`).
+Open any of these with **Open…** in the app. To print a setup's foci, waists and screen spots without opening a browser, run `npm run check-setup -- examples/<file>.json`.
+
+## General
+
+| File | Shows |
+| --- | --- |
+| `beam-expander-ideal.json` | A 1:4 Keplerian expander made of two ideal lenses (f = 50 and 200 mm), with a 780 nm Gaussian beam and a collimated ray bundle. |
+| `achromat-chromatic-focus.json` | A collimated beam at 650, 780 and 852 nm through an AC254-100-B. The focal-shift curve shows the achromat's residual shift. |
+| `singlet-chromatic-focus.json` | The same beam through an N-BK7 plano-convex lens (LA1509, f = 100 mm), for comparison: about 0.9 mm of focal shift. |
+| `4f-relay-off-axis.json` | A point 2 mm off axis relayed 1:1 by two AC254-100-B, crown sides towards the collimated space between them. The image is inverted. |
+| `slm-blaze-fresnel.json` | An SLM with a 0.5° blaze and an f = 1000 mm Fresnel lens, followed by an f = 300 mm lens. The spot is steered 2.6 mm, and the Fresnel term moves the focus 20 mm beyond the lens's focal plane. |
+
+## Tweezer imaging chromatic aberration
+
+These model the CaF/Rb tweezer experiment as described in the lab-book note *2026-11-20 Chromatic abberations in tweezer imaging* (CaFMOT-LabBook, `Daily Notes/2026/11-Nov/20/`).
 
 | File | Shows |
 | --- | --- |
@@ -13,7 +27,7 @@ Open any of these with **Open…** in the app. They model the CaF/Rb tweezer exp
 
 The imaging path is unfolded at the dichroic, so light runs left to right from the atoms at z = 0. The dichroic is left out, because a plate used in reflection adds no focus shift.
 
-## Where the numbers come from
+### Where the numbers come from
 
 - **Asphere (Asphericon AHL15-12): a model, not the vendor prescription.** The material is S-LAH64. The EFL is 12 mm and the working distance 9.0 mm at 780 nm, which gives a centre thickness of 5.33 mm, as in the note. The curved face was computed so that collimated 780 nm light focuses perfectly, then fitted as a conic plus polynomial (k = −0.626). Its working distances match the note at all three wavelengths: 8.870 mm at 606 nm, 9.000 mm at 780 nm and 9.036 mm at 852 nm. It is marked as a `drawing` lens, so absolute focus positions in the readouts are labelled "approx.". Replace it with Asphericon's Zemax file once you have it.
 - **Telescope:** two AC508-080-AB, from Thorlabs' Zemax file, with the crown side towards the collimated beam. The vertex gap of 161.9 mm makes the telescope afocal at 780 nm (the note gives 160 mm).
@@ -23,7 +37,7 @@ The imaging path is unfolded at the dichroic, so light runs left to right from t
 - **Atoms** are at the 852 nm tweezer focus, 9.036 mm from the asphere's flat face. The source is a point emitting into NA 0.55.
 - **Cameras, irises and the moved objective** are at **best** focus (minimum RMS spot), which is where focusing on the atoms by eye puts them, not at the paraxial focus.
 
-## Compared with the note
+### Compared with the note
 
 The note uses thin lenses and paraxial optics. These setups use the real achromat prescriptions and trace exact rays, so the corrections come out larger. The extra comes mostly from spherical aberration of the f = 80 mm telescope lenses, whose best focus at the camera is about 11 mm before the paraxial focus (about 11 µm at the atoms).
 

@@ -59,6 +59,7 @@ npm run dev     # development server
 npm run build   # type-check and build dist/index.html
 npm test        # unit tests
 npm run e2e     # build, then smoke test
+npm run check-setup -- examples/rb-780nm-imaging.json   # print a setup's foci, waists and screen spots
 ```
 
 The smoke test drives the built page in Playwright's Chromium. Download that browser once with `npx playwright install chromium`.

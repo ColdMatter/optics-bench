@@ -9,11 +9,13 @@
     "test": "vitest run",
     "e2e": "npm run build && node e2e/smoke.mjs",
     "glasses": "node scripts/build-glasses.mjs",
-    "lenses": "node scripts/fetch-thorlabs.mjs"
+    "lenses": "node scripts/fetch-thorlabs.mjs",
+    "check-setup": "rolldown scripts/check-setup.ts --platform node --format esm --file node_modules/.cache/check-setup.mjs && node node_modules/.cache/check-setup.mjs"
   },
   "devDependencies": {
     "jsdom": "^31.0.1",
     "playwright": "^1.65.1",
+    "rolldown": "^1.2.19",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vite-plugin-singlefile": "^2.3.4",

@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "point",
+      "id": "obj",
+      "label": "Object",
+      "z": 0,
+      "y": 2,
+      "wavelengthsNm": [
+        780
+      ],
+      "coneHalfAngleDeg": 4,
+      "rayCount": 11
+    }
+  ],
+  "optics": [
+    {
+      "kind": "lens",
+      "id": "L1",
+      "label": "L1",
+      "z": 96,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "flipped": true,
+      "prescription": {
+        "partNumber": "AC254-100-B",
+        "vendor": "Thorlabs",
+        "source": "zmx",
+        "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-b/7409-s03.zmx?v=0116101924",
+        "surfaces": [
+          {
+            "curvature": 0.01499700059988,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 4,
+            "glassAfter": "N-LAK22"
+          },
+          {
+            "curvature": -0.0186219739292365,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 1.5,
+            "glassAfter": "N-SF6HT"
+          },
+          {
+            "curvature": -0.0038549015072665,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 0,
+            "glassAfter": null
+          }
+        ]
+      }
+    },
+    {
+      "kind": "lens",
+      "id": "L2",
+      "label": "L2",
+      "z": 290,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "flipped": false,
+      "prescription": {
+        "partNumber": "AC254-100-B",
+        "vendor": "Thorlabs",
+        "source": "zmx",
+        "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-b/7409-s03.zmx?v=0116101924",
+        "surfaces": [
+          {
+            "curvature": 0.01499700059988,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 4,
+            "glassAfter": "N-LAK22"
+          },
+          {
+            "curvature": -0.0186219739292365,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 1.5,
+            "glassAfter": "N-SF6HT"
+          },
+          {
+            "curvature": -0.0038549015072665,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 0,
+            "glassAfter": null
+          }
+        ]
+      }
+    },
+    {
+      "kind": "screen",
+      "id": "img",
+      "label": "Image",
+      "z": 393.5
+    }
+  ],
+  "glasses": {}
+}
