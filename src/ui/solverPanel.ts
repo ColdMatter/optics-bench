@@ -1,5 +1,5 @@
 import { radiusAt, traceGaussian } from '../engine/gaussian';
-import { solve, type SolveResult, type Target, type Variable } from '../engine/solver';
+import { collimationError, solve, TOLERANCE, type SolveResult, type Target, type Variable } from '../engine/solver';
 import { defaultEndZ, lookupFor } from '../engine/trace';
 import type { GaussianSource, Id, Optic, Setup } from '../engine/types';
 import { formatFull, h, numberControl } from './controls';
@@ -39,7 +39,6 @@ interface Proposal {
 const VARIABLE_HALF_RANGE_MM = 50;
 const DEFAULT_RADIUS_MM = 1;
 const TAIL_MM = 50;
-const NM_TO_MM = 1e-6;
 
 const mm = (v: number) => `${v.toFixed(3)} mm`;
 const isMovable = (o: Optic) => o.kind === 'lens' || o.kind === 'ideal' || o.kind === 'slm';
@@ -80,8 +79,10 @@ function achieved(setup: Setup, target: Target, labels: Map<Id, string>): string
         ? `${head}: collimated ${after} (target waist at z = ${mm(target.z)})`
         : `${head}: waist ${after} at z = ${mm(last.z)} (target ${mm(target.z)})`;
     case 'collimated': {
-      const divergenceMrad = ((trace.m2 * trace.wavelengthNm * NM_TO_MM) / (Math.PI * last.radiusMm)) * 1e3;
-      return `${head}: ${last.collimated ? 'collimated' : 'not collimated'} ${after}, divergence ${formatFull(Number(divergenceMrad.toPrecision(3)))} mrad`;
+      const percent = (fraction: number) => `${formatFull(Number((100 * fraction).toPrecision(2)))} %`;
+      const error = Math.abs(collimationError(trace, setup));
+      const verdict = error < TOLERANCE.collimated ? 'collimated' : 'not collimated';
+      return `${head}: ${verdict} ${after}; collimation error ${percent(error)} (tolerance ${percent(TOLERANCE.collimated)})`;
     }
   }
 }

@@ -22,7 +22,14 @@ export interface SolveResult {
 
 const UNEVALUABLE_RESIDUAL = 1e3;
 const OVERLAP_WEIGHT = 100;
-const CONVERGED_COST = 1e-6;
+/** `converged` holds when every residual is within its target's tolerance (overlaps: 1e-3, i.e. 10 nm). */
+export const TOLERANCE: Record<Target['kind'], number> = {
+  radiusAt: 1e-3, // relative
+  waistRadius: 1e-3, // relative
+  waistPosition: 1e-3, // mm
+  collimated: 0.01, // waist within 1 % of a Rayleigh range of the last powered optic
+};
+const OVERLAP_TOLERANCE = 1e-3;
 const STOP_COST = 1e-12;
 const MAX_EVALUATIONS = 2000;
 const TIME_LIMIT_MS = 900;
@@ -62,7 +69,21 @@ function overlapResiduals(optics: Optic[]): number[] {
   return residuals;
 }
 
-function targetResidual(target: Target, trace: GaussianTrace | null): number {
+/**
+ * How far from collimated the beam leaving its last powered optic is: d/|q| there, with d the distance
+ * from that optic's exit back to the output waist. This is the 1/e² edge ray's angle from wavefront
+ * curvature as a fraction of the far-field divergence: 0 when collimated, ±1 far from it.
+ */
+export function collimationError(trace: GaussianTrace, setup: Setup): number {
+  const last = trace.waists[trace.waists.length - 1]!;
+  const optic = setup.optics.find((o) => o.id === last.afterOpticId);
+  const exitZ = optic ? opticExtent(optic)[1] : setup.sources.find((s) => s.id === trace.sourceId)!.z;
+  const rayleighMm = (Math.PI * last.radiusMm ** 2) / (trace.m2 * trace.wavelengthNm * NM_TO_MM);
+  const d = exitZ - last.z;
+  return d / Math.hypot(d, rayleighMm);
+}
+
+function targetResidual(target: Target, trace: GaussianTrace | null, setup: Setup): number {
   if (!trace || trace.centre.blockedBy !== null) return UNEVALUABLE_RESIDUAL;
   const finite = (r: number) => (Number.isFinite(r) ? r : UNEVALUABLE_RESIDUAL);
   const last = trace.waists[trace.waists.length - 1]!;
@@ -76,7 +97,7 @@ function targetResidual(target: Target, trace: GaussianTrace | null): number {
     case 'waistPosition':
       return last.collimated ? UNEVALUABLE_RESIDUAL : finite(last.z - target.z);
     case 'collimated':
-      return finite(((trace.m2 * trace.wavelengthNm * NM_TO_MM) / (Math.PI * last.radiusMm)) * 1e3);
+      return finite(collimationError(trace, setup));
   }
 }
 
@@ -106,7 +127,7 @@ function evaluate(setup: Setup, targets: Target[]): number[] {
     }
     return traces.get(key)!;
   };
-  return [...targets.map((t) => targetResidual(t, traceFor(t))), ...overlapResiduals(setup.optics)];
+  return [...targets.map((t) => targetResidual(t, traceFor(t), setup)), ...overlapResiduals(setup.optics)];
 }
 
 const sumSquares = (xs: number[]) => xs.reduce((s, r) => s + r * r, 0);
@@ -191,5 +212,8 @@ export function solve(setup: Setup, targets: Target[], variables: Variable[]): S
   const final = build(best.u);
   const residuals = evaluate(final, targets);
   const finalCost = sumSquares(residuals);
-  return { setup: final, cost: finalCost, residuals, converged: finalCost < CONVERGED_COST };
+  const converged = residuals.every(
+    (r, i) => Math.abs(r) < (i < targets.length ? TOLERANCE[targets[i]!.kind] : OVERLAP_TOLERANCE),
+  );
+  return { setup: final, cost: finalCost, residuals, converged };
 }

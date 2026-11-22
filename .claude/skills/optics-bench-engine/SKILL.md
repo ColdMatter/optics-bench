@@ -67,7 +67,7 @@ renderFrame: app.results() = traceSetup + traceGaussians, cached by Setup identi
 
 ## Solver (`solver.ts`)
 
-Bounded Nelder–Mead over optic `z` values. Each bound maps through `min + (max − min)(1 + sin u)/2`. It starts from the current positions plus 4 restarts from a seeded PRNG, so it is deterministic. It stops at cost < 1e-12, 2000 evaluations or 900 ms. Targets are all on Gaussian sources: `radiusAt`, `waistRadius`, `waistPosition` and `collimated`. Overlapping lenses add a penalty (weight 100). The result is a new `Setup`, and the input is untouched. `converged` means cost < 1e-6. The `collimated` residual is the far-field divergence `M²λ/(π w0)` in mrad, which has a nonzero minimum, so a collimation target never reports converged even when its solution is right.
+Bounded Nelder–Mead over optic `z` values. Each bound maps through `min + (max − min)(1 + sin u)/2`. It starts from the current positions plus 4 restarts from a seeded PRNG, so it is deterministic. It stops at cost < 1e-12, 2000 evaluations or 900 ms. Targets are all on Gaussian sources: `radiusAt`, `waistRadius`, `waistPosition` and `collimated`. Overlapping lenses add a penalty (weight 100). The result is a new `Setup`, and the input is untouched. Residuals: `radiusAt` and `waistRadius` relative, `waistPosition` in mm, and `collimated` is `collimationError` = d/|q| at the exit of the last powered optic (d: exit to output waist), which is 0 when collimated and ±1 far from it. `converged` means every residual is within its kind's `TOLERANCE` (1e-3, 1e-3, 1e-3 mm, 0.01) and every overlap residual below 1e-3. Every residual needs a minimum of zero, or its target can never converge.
 
 ## Files, data and import
 
