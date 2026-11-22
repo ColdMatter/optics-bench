@@ -8,20 +8,18 @@
       "z": 0,
       "y": 0,
       "wavelengthsNm": [
-        650,
-        780,
-        852
+        780
       ],
-      "widthMm": 10,
+      "widthMm": 20,
       "angleDeg": 0,
-      "rayCount": 11
+      "rayCount": 15
     }
   ],
   "optics": [
     {
       "kind": "lens",
       "id": "pcx",
-      "label": "LA1509 (f = 100)",
+      "label": "LA1509",
       "z": 50,
       "decentreMm": 0,
       "tiltDeg": 0,
@@ -50,6 +48,12 @@
           }
         ]
       }
+    },
+    {
+      "kind": "screen",
+      "id": "focus",
+      "label": "Best focus",
+      "z": 151.2
     }
   ],
   "glasses": {}

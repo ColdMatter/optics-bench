@@ -49,7 +49,7 @@ Every value can also be typed into the elements table or the properties panel. E
 
 ## Examples
 
-`examples/` holds setups of the CaF/Rb tweezer experiment: the 852 nm tweezer path, Rb imaging, and the ways of bringing CaF at 606 nm into focus. Its README says what each one shows and where the numbers come from.
+`examples/basics/` is a numbered series of small setups, each demonstrating one feature (sources, lens orientation, chromatic focus, apertures, screens, SLM terms, warnings, the solver), with something to try in each. `examples/tweezer-imaging/` models chromatic aberration in the CaF/Rb tweezer imaging path. `examples/README.md` describes them all.
 
 ## Development
 
@@ -59,7 +59,7 @@ npm run dev     # development server
 npm run build   # type-check and build dist/index.html
 npm test        # unit tests
 npm run e2e     # build, then smoke test
-npm run check-setup -- examples/rb-780nm-imaging.json   # print a setup's foci, waists and screen spots
+npm run check-setup -- examples/basics/01-point-source-ideal-lens.json   # print a setup's foci, waists and screen spots
 ```
 
 The smoke test drives the built page in Playwright's Chromium. Download that browser once with `npx playwright install chromium`.

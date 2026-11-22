@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "collimated",
+      "id": "beam",
+      "label": "Beam",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        852
+      ],
+      "widthMm": 12,
+      "angleDeg": 0,
+      "rayCount": 15
+    }
+  ],
+  "optics": [
+    {
+      "kind": "slm",
+      "id": "slm",
+      "label": "SLM",
+      "z": 50,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "apertureMm": 15.4,
+      "pixelPitchUm": 8,
+      "designWavelengthNm": 852,
+      "phase": [
+        {
+          "kind": "fresnel",
+          "focalLengthMm": 50
+        }
+      ]
+    },
+    {
+      "kind": "screen",
+      "id": "focal",
+      "label": "Focal plane",
+      "z": 100
+    }
+  ],
+  "glasses": {}
+}

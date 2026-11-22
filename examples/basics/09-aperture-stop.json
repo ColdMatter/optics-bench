@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "point",
+      "id": "src",
+      "label": "Object",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        780
+      ],
+      "coneHalfAngleDeg": 10,
+      "rayCount": 15
+    }
+  ],
+  "optics": [
+    {
+      "kind": "aperture",
+      "id": "iris",
+      "label": "Iris ⌀6",
+      "z": 50,
+      "decentreMm": 0,
+      "diameterMm": 6
+    },
+    {
+      "kind": "ideal",
+      "id": "lens",
+      "label": "f = 100",
+      "z": 200,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "focalLengthMm": 100,
+      "apertureMm": 25.4
+    },
+    {
+      "kind": "screen",
+      "id": "img",
+      "label": "Image",
+      "z": 400
+    }
+  ],
+  "glasses": {}
+}

@@ -8,6 +8,7 @@
       "z": 0,
       "y": 0,
       "wavelengthsNm": [
+        780,
         852
       ],
       "widthMm": 8,
@@ -28,30 +29,16 @@
       "designWavelengthNm": 852,
       "phase": [
         {
-          "kind": "blaze",
-          "angleDeg": 0.5
-        },
-        {
           "kind": "fresnel",
-          "focalLengthMm": 1000
+          "focalLengthMm": 500
         }
       ]
     },
     {
-      "kind": "ideal",
-      "id": "lens",
-      "label": "f = 300",
-      "z": 350,
-      "decentreMm": 0,
-      "tiltDeg": 0,
-      "focalLengthMm": 300,
-      "apertureMm": 25.4
-    },
-    {
       "kind": "screen",
       "id": "focal",
-      "label": "Focal plane",
-      "z": 560
+      "label": "f = 500 at 852 nm",
+      "z": 550
     }
   ],
   "glasses": {}

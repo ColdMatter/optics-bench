@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "collimated",
+      "id": "beam",
+      "label": "Beam",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        780
+      ],
+      "widthMm": 10,
+      "angleDeg": 0,
+      "rayCount": 11
+    }
+  ],
+  "optics": [
+    {
+      "kind": "ideal",
+      "id": "lens",
+      "label": "f = 100, decentred 3 mm",
+      "z": 50,
+      "decentreMm": 3,
+      "tiltDeg": 0,
+      "focalLengthMm": 100,
+      "apertureMm": 25.4
+    },
+    {
+      "kind": "screen",
+      "id": "focal",
+      "label": "Focal plane",
+      "z": 150
+    }
+  ],
+  "glasses": {}
+}

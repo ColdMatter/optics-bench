@@ -14,26 +14,13 @@
       "waistRadiusMm": 0.5,
       "waistZ": 0,
       "m2": 1
-    },
-    {
-      "kind": "collimated",
-      "id": "rays",
-      "label": "Rays",
-      "z": 0,
-      "y": 0,
-      "wavelengthsNm": [
-        780
-      ],
-      "widthMm": 1.5,
-      "angleDeg": 0,
-      "rayCount": 7
     }
   ],
   "optics": [
     {
       "kind": "ideal",
-      "id": "f50",
-      "label": "f = 50",
+      "id": "L1",
+      "label": "L1 f = 50",
       "z": 100,
       "decentreMm": 0,
       "tiltDeg": 0,
@@ -42,19 +29,13 @@
     },
     {
       "kind": "ideal",
-      "id": "f200",
-      "label": "f = 200",
-      "z": 350,
+      "id": "L2",
+      "label": "L2 f = 150",
+      "z": 250,
       "decentreMm": 0,
       "tiltDeg": 0,
-      "focalLengthMm": 200,
+      "focalLengthMm": 150,
       "apertureMm": 25.4
-    },
-    {
-      "kind": "screen",
-      "id": "screen",
-      "label": "Screen",
-      "z": 700
     }
   ],
   "glasses": {}

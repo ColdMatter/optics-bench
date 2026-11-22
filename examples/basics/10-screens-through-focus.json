@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "collimated",
+      "id": "beam",
+      "label": "Beam",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        780
+      ],
+      "widthMm": 10,
+      "angleDeg": 0,
+      "rayCount": 11
+    }
+  ],
+  "optics": [
+    {
+      "kind": "lens",
+      "id": "ac",
+      "label": "AC254-100-B",
+      "z": 50,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "flipped": false,
+      "prescription": {
+        "partNumber": "AC254-100-B",
+        "vendor": "Thorlabs",
+        "source": "zmx",
+        "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac2/ac254-100-b/7409-s03.zmx?v=0116101924",
+        "surfaces": [
+          {
+            "curvature": 0.01499700059988,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 4,
+            "glassAfter": "N-LAK22"
+          },
+          {
+            "curvature": -0.0186219739292365,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 1.5,
+            "glassAfter": "N-SF6HT"
+          },
+          {
+            "curvature": -0.0038549015072665,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 12.7,
+            "thicknessToNextMm": 0,
+            "glassAfter": null
+          }
+        ]
+      }
+    },
+    {
+      "kind": "screen",
+      "id": "before",
+      "label": "1 mm before",
+      "z": 151.57
+    },
+    {
+      "kind": "screen",
+      "id": "focus",
+      "label": "Best focus",
+      "z": 152.57
+    },
+    {
+      "kind": "screen",
+      "id": "after",
+      "label": "1 mm after",
+      "z": 153.57
+    }
+  ],
+  "glasses": {}
+}

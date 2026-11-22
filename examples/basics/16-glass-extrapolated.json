@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "collimated",
+      "id": "beam",
+      "label": "Beam",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        633,
+        780,
+        1064
+      ],
+      "widthMm": 10,
+      "angleDeg": 0,
+      "rayCount": 11
+    }
+  ],
+  "optics": [
+    {
+      "kind": "lens",
+      "id": "ac",
+      "label": "AC508-075-A",
+      "z": 50,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "flipped": false,
+      "prescription": {
+        "partNumber": "AC508-075-A",
+        "vendor": "Thorlabs",
+        "source": "zmx",
+        "sourceRef": "https://media.thorlabs.com/globalassets/items/a/ac/ac5/ac508-075-a/20539-s03.zmx?v=0116102024",
+        "surfaces": [
+          {
+            "curvature": 0.0196850393700787,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 25.4,
+            "thicknessToNextMm": 20,
+            "glassAfter": "E-BAF11"
+          },
+          {
+            "curvature": -0.0239865675221876,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 25.4,
+            "thicknessToNextMm": 3,
+            "glassAfter": "N-SF11"
+          },
+          {
+            "curvature": -0.0040371417036738,
+            "conic": 0,
+            "asphere": [],
+            "semiDiameterMm": 25.4,
+            "thicknessToNextMm": 0,
+            "glassAfter": null
+          }
+        ]
+      }
+    }
+  ],
+  "glasses": {}
+}

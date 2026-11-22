@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "kind": "gaussian",
+      "id": "m1",
+      "label": "M² = 1",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        780
+      ],
+      "angleDeg": 0,
+      "waistRadiusMm": 1,
+      "waistZ": 0,
+      "m2": 1
+    },
+    {
+      "kind": "gaussian",
+      "id": "m2",
+      "label": "M² = 2",
+      "z": 0,
+      "y": 0,
+      "wavelengthsNm": [
+        780
+      ],
+      "angleDeg": 0,
+      "waistRadiusMm": 1,
+      "waistZ": 0,
+      "m2": 2
+    }
+  ],
+  "optics": [
+    {
+      "kind": "ideal",
+      "id": "lens",
+      "label": "f = 200",
+      "z": 100,
+      "decentreMm": 0,
+      "tiltDeg": 0,
+      "focalLengthMm": 200,
+      "apertureMm": 25.4
+    }
+  ],
+  "glasses": {}
+}

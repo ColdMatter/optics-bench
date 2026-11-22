@@ -1,18 +1,31 @@
 # Example setups
 
-Open any of these with **Open…** in the app. To print a setup's foci, waists and screen spots without opening a browser, run `npm run check-setup -- examples/<file>.json`.
+Open any of these with **Open…** in the app. To print a setup's foci, waists and screen spots without opening a browser, run `npm run check-setup -- examples/<folder>/<file>.json`.
 
-## General
+## `basics/`: one feature at a time
 
-| File | Shows |
-| --- | --- |
-| `beam-expander-ideal.json` | A 1:4 Keplerian expander made of two ideal lenses (f = 50 and 200 mm), with a 780 nm Gaussian beam and a collimated ray bundle. |
-| `achromat-chromatic-focus.json` | A collimated beam at 650, 780 and 852 nm through an AC254-100-B. The focal-shift curve shows the achromat's residual shift. |
-| `singlet-chromatic-focus.json` | The same beam through an N-BK7 plano-convex lens (LA1509, f = 100 mm), for comparison: about 0.9 mm of focal shift. |
-| `4f-relay-off-axis.json` | A point 2 mm off axis relayed 1:1 by two AC254-100-B, crown sides towards the collimated space between them. The image is inverted. |
-| `slm-blaze-fresnel.json` | An SLM with a 0.5° blaze and an f = 1000 mm Fresnel lens, followed by an f = 300 mm lens. The spot is steered 2.6 mm, and the Fresnel term moves the focus 20 mm beyond the lens's focal plane. |
+Work through these in order. Each one is small, shows one thing, and has a step to try. Click an element on the bench or in the table to edit it in the properties panel.
 
-## Tweezer imaging chromatic aberration
+| File | Shows | Try |
+| --- | --- | --- |
+| `01-point-source-ideal-lens.json` | A point source imaged 2f–2f by an ideal lens (f = 100 mm). The readout puts the focus on the screen at z = 400. | Drag the lens along z and watch the image and the readout move. |
+| `02-collimated-beam-ideal-lens.json` | A collimated beam focused at the focal plane. | Set the beam's angle to 2°: the focus moves to y = f·tan 2° ≈ 3.5 mm. |
+| `03-gaussian-beam-and-m2.json` | Two Gaussian beams (w₀ = 1 mm) focused by an f = 200 mm lens. With M² = 2 the waist is twice as large: 99 µm against 50 µm. | Hover over the beam to read w(z). Turn off **Rays** to see only the envelopes. |
+| `04-plano-convex-orientation.json` | A 20 mm beam through an LA1509 with its curved side towards the beam. Spherical aberration puts best focus 0.8 mm before paraxial focus. | Tick **Flip**: the RMS spot grows from 20 µm to 81 µm. |
+| `05-chromatic-singlet.json` | 650, 780 and 852 nm through the N-BK7 singlet. The focus moves 0.9 mm across that range (Δfocus and the focal-shift plot). | Change the wavelengths, or the plot's range. |
+| `06-chromatic-achromat.json` | The same beam through an AC254-100-B. The shift is about 0.06 mm, with its minimum near 780 nm. | Compare the focal-shift curve with 05. |
+| `07-off-axis-4f-relay.json` | A point 2 mm off axis relayed 1:1 by two AC254-100-B (crown sides towards the collimated space between them). The image is inverted, at y = −2 mm. The readout notes that only tangential rays are traced. | Untick **Flip** on L1 and watch the image blur. |
+| `08-decentred-lens.json` | An ideal lens decentred by 3 mm focuses on its own axis, at y = 3 mm. | Alt+drag the lens up and down, or give it a tilt. |
+| `09-aperture-stop.json` | A 6 mm iris clips a 10° cone. Blocked rays end at the iris, and 5 of 15 reach the image. | Tick **fill first optic** on the source: the rays then just fill the iris. |
+| `10-screens-through-focus.json` | Screens 1 mm either side of the AC254-100-B's best focus: about 32 µm RMS against 0.2 µm at focus. | Read the screen lines in the readouts. Move a screen. |
+| `11-slm-blaze.json` | A 0.5° blaze (designed for 852 nm) steers the focus 2.62 mm at 852 nm, but only 2.40 mm at 780 nm, because diffraction is dispersive. | Change the blaze angle. |
+| `12-slm-fresnel.json` | An f = 500 mm Fresnel lens on the SLM. 852 nm focuses at 500 mm, and 780 nm at 546 mm (f scales as λ₀/λ). | Add a blaze term in the properties panel. |
+| `13-slm-pitch-limit.json` | An f = 50 mm Fresnel lens is too strong for 8 µm pixels. Where the phase gradient aliases (beyond about 2.7 mm), rays are blocked and the SLM is flagged with a warning. | Set the pixel pitch to 2 µm. |
+| `14-overlap-warning.json` | The LA1509 overlaps the achromat. Both rows are flagged, and no rays get through. | Drag the LA1509 past z = 56 mm. |
+| `15-solver-collimate.json` | A Gaussian beam through two ideal lenses (f = 50 and 150 mm) that are not yet spaced to collimate it. | In **Solver**, add a "Collimated output" target and a variable for L2, then **Run** and **Accept**. L2 moves to z ≈ 300.1, one focal length after the waist L1 forms. The panel still says "converged: no": a collimation target's cost is the beam's remaining divergence, which can't reach zero (a known issue). |
+| `16-glass-extrapolated.json` | A visible-band AC508-075-A at 633, 780 and 1064 nm. Its E-BAF11 is only tabulated from 0.4 to 0.7 µm, so the readouts flag the index as extrapolated at 780 and 1064 nm. | Change 1064 nm to 650 nm: only the 780 nm warning remains. |
+
+## `tweezer-imaging/`: chromatic aberration in tweezer imaging
 
 These model the CaF/Rb tweezer experiment as described in the lab-book note *2026-11-20 Chromatic abberations in tweezer imaging* (CaFMOT-LabBook, `Daily Notes/2026/11-Nov/20/`).
 
