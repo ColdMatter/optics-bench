@@ -9,7 +9,6 @@ import type { AppState } from './store';
 
 export const OFF_AXIS_NOTE = 'Tangential (meridional) rays only — sagittal focus not computed';
 const NO_RAYS = 'No rays reach this point';
-const UNRELIABLE = 'unreliable:';
 const TILT_LIMIT_DEG = 3;
 const SHIFT_STEPS = 41;
 const DEFAULT_RANGE_MARGIN_NM = 100;
@@ -25,76 +24,128 @@ export function formatLength(lengthMm: number): string {
   return Math.abs(um) < 0.01 ? `${um.toFixed(2)} µm` : `${um.toPrecision(3)} µm`;
 }
 
-/**
- * The magnification suffix for a screen line: `, M = −1.500`, or why there is none. Given a point
- * source's spot RMS, it adds the blur referred back to the object, RMS/|M|.
- */
-export function formatMagnification(m: Magnification | undefined, spotRmsMm?: number): string {
-  if (!m) return '';
-  if (m.value === null) {
-    if (m.reason === 'edge-ray-blocked') return ', M: edge ray blocked';
-    if (m.reason === 'undefined') return ', M undefined (no beam width)';
-    return ', M unavailable';
-  }
-  const v = Math.abs(m.value) < 1e-12 ? 0 : m.value;
-  const objectSide =
-    spotRmsMm !== undefined && Math.abs(v) > 1e-9 ? `, object-side RMS ${formatLength(spotRmsMm / Math.abs(v))}` : '';
-  return `, M = ${v.toPrecision(4)}${objectSide}`;
+/** One value in a readout table. `warn` colours it, and `title` explains it on hover. */
+export interface Cell {
+  text: string;
+  warn?: boolean;
+  title?: string;
 }
+
+/** A row of a source's readout table: one cell per wavelength column, null where there is nothing. */
+export interface ReadoutRow {
+  label: string;
+  cells: (Cell | null)[];
+  /** A screen's name, heading the rows under it. */
+  heading?: boolean;
+  /** Indented under the row or heading above it. */
+  sub?: boolean;
+  title?: string;
+}
+
+export interface Note {
+  text: string;
+  warn: boolean;
+}
+
+/** A source's readouts: a column per wavelength, shortest first, then rows, then notes. */
+export interface SourceReadout {
+  wavelengthsNm: number[];
+  rows: ReadoutRow[];
+  notes: Note[];
+}
+
+const APPROX_TITLE = 'Approximate: a lens in the path was modelled from its drawing, which rounds radii and thicknesses';
+const DASH: Cell = { text: '—' };
+const NO_RAYS_CELL: Cell = { text: NO_RAYS, warn: true };
+const byWavelength = <T extends { wavelengthNm: number }>(a: T, b: T) => a.wavelengthNm - b.wavelengthNm;
 
 const signed = (lengthMm: number) => `${lengthMm < 0 ? '' : '+'}${formatLength(lengthMm)}`;
 
-function focusLine(r: FocusResult, offAxis: boolean): string {
-  const head = `${r.wavelengthNm} nm:`;
-  if (r.status === 'collimated') return `${head} no focus (collimated)`;
-  if (r.status === 'no-rays') return `${head} ${NO_RAYS}`;
-  const at = (z: number) => `${r.approximate ? 'approx. ' : ''}z = ${mm(z)}`;
-  const parts: string[] = [];
-  if (r.paraxialZ !== null) parts.push(`paraxial focus at ${at(r.paraxialZ)}`);
-  if (r.bestZ !== null) {
-    const details = [`RMS ${formatLength(r.rmsAtBestMm ?? 0)}`];
-    if (offAxis && r.imageHeightMm !== null) details.push(`height y = ${mm(r.imageHeightMm)}`);
-    parts.push(`best focus at ${at(r.bestZ)} (${details.join(', ')})`);
+/** A magnification to 4 significant figures, signed, or why there is no number. */
+export function magnificationCell(m: Magnification | undefined): Cell | null {
+  if (!m) return null;
+  if (m.value === null) {
+    if (m.reason === 'edge-ray-blocked') return { text: 'edge ray blocked', warn: true };
+    if (m.reason === 'undefined') return { text: 'undefined (no beam width)' };
+    return { text: 'unavailable' };
   }
-  return `${head} ${parts.join('; ')}`;
+  const v = Math.abs(m.value) < 1e-12 ? 0 : m.value;
+  return { text: v.toPrecision(4) };
 }
 
-/** Focus lines for one ray source: a line per wavelength, then the shift between neighbouring wavelengths. */
-export function formatFocus(results: FocusResult[], offAxis: boolean): string[] {
-  const lines = results.map((r) => focusLine(r, offAxis));
-  const sorted = [...results].sort((a, b) => a.wavelengthNm - b.wavelengthNm);
-  for (let i = 1; i < sorted.length; i++) {
-    const short = sorted[i - 1]!;
-    const long = sorted[i]!;
-    const key = short.paraxialZ !== null && long.paraxialZ !== null ? 'paraxialZ' : 'bestZ';
-    const zShort = short[key];
-    const zLong = long[key];
-    if (zShort === null || zLong === null) continue;
-    lines.push(`Δfocus ${short.wavelengthNm}→${long.wavelengthNm} nm: ${signed(zLong - zShort)}`);
-  }
-  if (offAxis) lines.push(OFF_AXIS_NOTE);
-  return lines;
+/** A point source's spot RMS referred back to the object, RMS/|M|; null without a usable M. */
+export function objectSideRmsCell(m: Magnification | undefined, spotRmsMm: number): Cell | null {
+  if (!m || m.value === null || Math.abs(m.value) <= 1e-9) return null;
+  return { text: formatLength(spotRmsMm / Math.abs(m.value)) };
 }
 
-/** Waists of one Gaussian beam at one wavelength, then why they may be unreliable. */
-export function formatGaussian(trace: GaussianTrace, labels: Record<Id, string>): string[] {
-  const name = (id: Id) => labels[id] || id;
-  const head = `${trace.wavelengthNm} nm`;
-  const lines = trace.waists.map((w) => {
-    const where = w.afterOpticId === null ? `${head} input waist` : `${head} after ${name(w.afterOpticId)}`;
-    return w.collimated
-      ? `${where}: collimated (w₀ = ${formatLength(w.radiusMm)})`
-      : `${where}: w₀ = ${formatLength(w.radiusMm)} at z = ${mm(w.z)}`;
+/**
+ * Focus rows for one ray source, a column per result in the order given: paraxial focus, the
+ * shift from the wavelength to its left, best focus, the RMS there, and off axis the image height.
+ */
+export function focusRows(results: FocusResult[], offAxis: boolean): ReadoutRow[] {
+  const status = (r: FocusResult): Cell => (r.status === 'collimated' ? { text: 'none (collimated)' } : NO_RAYS_CELL);
+  if (results.length && results.every((r) => r.status !== 'ok')) return [{ label: 'Focus', cells: results.map(status) }];
+  const at = (r: FocusResult, z: number | null): Cell =>
+    z === null ? DASH : r.approximate ? { text: `≈${mm(z)}`, title: APPROX_TITLE } : { text: mm(z) };
+  const ok = (r: FocusResult, cell: () => Cell): Cell => (r.status === 'ok' ? cell() : DASH);
+  const rows: ReadoutRow[] = [{ label: 'Paraxial focus z', cells: results.map((r) => (r.status === 'ok' ? at(r, r.paraxialZ) : status(r))) }];
+
+  const shifts = results.map((r, i): Cell | null => {
+    const prev = results[i - 1];
+    if (!prev) return null;
+    const key = prev.paraxialZ !== null && r.paraxialZ !== null ? 'paraxialZ' : 'bestZ';
+    const from = prev[key];
+    const to = r[key];
+    if (from === null || to === null) return null;
+    const kind = key === 'paraxialZ' ? 'paraxial' : 'best';
+    return { text: signed(to - from), title: `The ${kind} focus at ${r.wavelengthNm} nm minus that at ${prev.wavelengthNm} nm` };
   });
-  if (trace.centre.blockedBy !== null) lines.push(`${head}: beam blocked at ${name(trace.centre.blockedBy)}`);
-  for (const w of trace.warnings) {
-    lines.push(
-      w.kind === 'clipped'
-        ? `${head} ${UNRELIABLE} beam clipped at ${name(w.opticId)}`
-        : `${head} ${UNRELIABLE} centre ray meets ${name(w.opticId)} tilted by more than ${TILT_LIMIT_DEG}°`,
-    );
+  if (shifts.some((c) => c !== null)) {
+    rows.push({ label: 'Focal shift', sub: true, cells: shifts, title: 'How far the focus moves from the wavelength to the left' });
   }
-  return lines;
+  rows.push({ label: 'Best focus z', cells: results.map((r) => ok(r, () => at(r, r.bestZ))) });
+  rows.push({
+    label: 'RMS at best focus',
+    cells: results.map((r) => ok(r, () => (r.rmsAtBestMm === null ? DASH : { text: formatLength(r.rmsAtBestMm) }))),
+  });
+  if (offAxis) {
+    rows.push({
+      label: 'Image height y',
+      cells: results.map((r) => ok(r, () => (r.imageHeightMm === null ? DASH : { text: mm(r.imageHeightMm) }))),
+    });
+  }
+  return rows;
+}
+
+/** Waist rows for one Gaussian source, a column per beam in the order given, and notes on why they may be unreliable. */
+export function gaussianRows(beams: GaussianTrace[], labels: Record<Id, string>): { rows: ReadoutRow[]; notes: Note[] } {
+  const name = (id: Id) => labels[id] || id;
+  const keys: (Id | null)[] = [];
+  for (const beam of beams) for (const w of beam.waists) if (!keys.includes(w.afterOpticId)) keys.push(w.afterOpticId);
+  const rows = keys.map(
+    (key): ReadoutRow => ({
+      label: key === null ? 'Input waist' : `After ${name(key)}`,
+      cells: beams.map((beam) => {
+        const w = beam.waists.find((x) => x.afterOpticId === key);
+        if (!w) return DASH;
+        return { text: w.collimated ? `collimated, w₀ ${formatLength(w.radiusMm)}` : `w₀ ${formatLength(w.radiusMm)} at z ${mm(w.z)}` };
+      }),
+    }),
+  );
+  const notes: Note[] = [];
+  for (const beam of beams) {
+    const prefix = beams.length > 1 ? `${beam.wavelengthNm} nm: ` : '';
+    if (beam.centre.blockedBy !== null) notes.push({ text: `${prefix}Beam blocked at ${name(beam.centre.blockedBy)}`, warn: true });
+    for (const w of beam.warnings) {
+      const why =
+        w.kind === 'clipped'
+          ? `beam clipped at ${name(w.opticId)}`
+          : `centre ray meets ${name(w.opticId)} tilted by more than ${TILT_LIMIT_DEG}°`;
+      notes.push({ text: `${prefix}Unreliable: ${why}`, warn: true });
+    }
+  }
+  return { rows, notes };
 }
 
 const hasPower = (o: Optic) => o.kind === 'lens' || o.kind === 'ideal' || o.kind === 'slm';
@@ -173,53 +224,93 @@ function memoCurve(setup: Setup, sourceId: Id, minNm: number, maxNm: number): Sh
   return curve;
 }
 
-function lineClass(line: string): string {
-  if (line === OFF_AXIS_NOTE) return 'note';
-  if (line.includes(UNRELIABLE) || line.includes(NO_RAYS) || line.includes('blocked at') || line.includes('edge ray blocked')) {
-    return 'warn';
-  }
-  if (line.startsWith('Δfocus')) return 'shift';
-  return '';
-}
-
 function screensAfter(setup: Setup, source: Source): Screen[] {
   return setup.optics.filter((o): o is Screen => o.kind === 'screen' && o.z >= source.z).sort((a, b) => a.z - b.z);
 }
 
-function sourceLines(setup: Setup, source: Source, trace: SetupTrace, gaussians: GaussianTrace[], labels: Record<Id, string>): string[] {
+/** Everything the readouts panel shows for one source. */
+export function sourceReadout(
+  setup: Setup,
+  source: Source,
+  trace: SetupTrace,
+  gaussians: GaussianTrace[],
+  labels: Record<Id, string>,
+): SourceReadout {
   const offAxis = isOffAxis(setup, source);
   const screens = screensAfter(setup, source);
   const magnifications = screens.length ? memoMagnification(setup, source.id) : new Map<Id, Magnification[]>();
-  const magnificationAt = (screenId: Id, wavelengthNm: number, spotRmsMm?: number) =>
-    formatMagnification(magnifications.get(screenId)?.find((m) => m.wavelengthNm === wavelengthNm), spotRmsMm);
+  const mAt = (screenId: Id, wavelengthNm: number) => magnifications.get(screenId)?.find((m) => m.wavelengthNm === wavelengthNm);
+  const offAxisNote: Note[] = offAxis ? [{ text: OFF_AXIS_NOTE, warn: false }] : [];
+
   if (source.kind === 'gaussian') {
-    const beams = gaussians.filter((g) => g.sourceId === source.id);
-    const lines = beams.flatMap((g) => formatGaussian(g, labels));
+    const beams = gaussians.filter((g) => g.sourceId === source.id).sort(byWavelength);
+    const { rows, notes } = gaussianRows(beams, labels);
     for (const screen of screens) {
-      for (const g of beams) {
+      const radii = beams.map((g) => {
         const w = radiusAt(g, screen.z);
-        lines.push(
-          `${screen.label}, ${g.wavelengthNm} nm: ${
-            w === null || !Number.isFinite(w) ? NO_RAYS : `w = ${formatLength(w)}${magnificationAt(screen.id, g.wavelengthNm)}`
-          }`,
-        );
-      }
+        return w === null || !Number.isFinite(w) ? null : w;
+      });
+      rows.push({ label: screen.label, heading: true, cells: beams.map(() => null) });
+      rows.push({ label: 'w', sub: true, cells: radii.map((w) => (w === null ? NO_RAYS_CELL : { text: formatLength(w) })) });
+      rows.push({
+        label: 'M',
+        sub: true,
+        cells: beams.map((g, i) => (radii[i] === null ? DASH : (magnificationCell(mAt(screen.id, g.wavelengthNm)) ?? DASH))),
+      });
     }
-    if (offAxis) lines.push(OFF_AXIS_NOTE);
-    return lines;
+    return { wavelengthsNm: beams.map((g) => g.wavelengthNm), rows, notes: [...notes, ...offAxisNote] };
   }
-  const focusLines = formatFocus(memoFocus(setup, source.id), offAxis).filter((l) => l !== OFF_AXIS_NOTE);
+
+  const results = [...memoFocus(setup, source.id)].sort(byWavelength);
+  const wavelengthsNm = results.map((r) => r.wavelengthNm);
+  const rows = focusRows(results, offAxis);
   const sourceTrace = trace.sources.find((t) => t.sourceId === source.id);
-  const screenLines = screens.flatMap((screen) =>
-    (sourceTrace ? screenStats(sourceTrace, screen.id) : []).map((spot) => {
-      const head = `${screen.label}, ${spot.wavelengthNm} nm:`;
-      return spot.centroidMm === null
-        ? `${head} ${NO_RAYS}`
-        : `${head} ${spot.heightsMm.length} rays, centroid y = ${mm(spot.centroidMm)}, RMS ${formatLength(spot.rmsMm ?? 0)}` +
-            magnificationAt(screen.id, spot.wavelengthNm, source.kind === 'point' ? (spot.rmsMm ?? 0) : undefined);
-    }),
+  for (const screen of screens) {
+    const stats = sourceTrace ? screenStats(sourceTrace, screen.id) : [];
+    const spots = wavelengthsNm.map((nm) => {
+      const spot = stats.find((s) => s.wavelengthNm === nm);
+      return spot && spot.centroidMm !== null ? { centroidMm: spot.centroidMm, rmsMm: spot.rmsMm ?? 0 } : null;
+    });
+    if (spots.every((s) => s === null)) {
+      rows.push({ label: screen.label, heading: true, cells: spots.map(() => NO_RAYS_CELL) });
+      continue;
+    }
+    const each = (cell: (spot: { centroidMm: number; rmsMm: number }, nm: number) => Cell | null, missing: Cell) =>
+      spots.map((spot, i) => (spot ? (cell(spot, wavelengthsNm[i]!) ?? DASH) : missing));
+    rows.push({ label: screen.label, heading: true, cells: spots.map(() => null) });
+    rows.push({ label: 'Centroid y', sub: true, cells: each((s) => ({ text: mm(s.centroidMm) }), NO_RAYS_CELL) });
+    rows.push({ label: 'RMS', sub: true, cells: each((s) => ({ text: formatLength(s.rmsMm) }), DASH) });
+    rows.push({ label: 'M', sub: true, cells: each((_, nm) => magnificationCell(mAt(screen.id, nm)), DASH) });
+    if (source.kind === 'point') {
+      rows.push({
+        label: 'Object-side RMS',
+        sub: true,
+        title: 'The spot RMS divided by |M|: its blur referred back to the object, ignoring diffraction',
+        cells: each((s, nm) => objectSideRmsCell(mAt(screen.id, nm), s.rmsMm), DASH),
+      });
+    }
+  }
+  return { wavelengthsNm, rows, notes: offAxisNote };
+}
+
+function readoutTable(title: (Node | string)[], readout: SourceReadout): HTMLTableElement {
+  const head = h(
+    'tr',
+    {},
+    h('th', { class: 'ro-title', scope: 'col' }, ...title),
+    ...readout.wavelengthsNm.map((nm) =>
+      h('th', { class: 'ro-wavelength', scope: 'col' }, h('span', { class: 'ro-dot', style: `background: ${wavelengthColour(nm)}` }), `${nm} nm`),
+    ),
   );
-  return [...focusLines, ...screenLines, ...(offAxis ? [OFF_AXIS_NOTE] : [])];
+  const body = readout.rows.map((row) =>
+    h(
+      'tr',
+      { class: row.heading ? 'ro-heading' : row.sub ? 'ro-sub' : undefined },
+      h('th', { scope: 'row', title: row.title }, row.label),
+      ...row.cells.map((cell) => (cell ? h('td', { class: cell.warn ? 'warn' : undefined, title: cell.title }, cell.text) : h('td'))),
+    ),
+  );
+  return h('table', { class: 'readout-table' }, h('thead', {}, head), h('tbody', {}, ...body));
 }
 
 interface PlotRange {
@@ -455,17 +546,13 @@ export function renderReadouts(el: HTMLElement, state: AppState, trace: SetupTra
 
   const labels: Record<Id, string> = Object.fromEntries([...setup.sources, ...setup.optics].map((e) => [e.id, e.label]));
   const blocks: HTMLElement[] = setup.sources.map((source) => {
-    const lines = sourceLines(setup, source, trace, gaussians, labels);
+    const readout = sourceReadout(setup, source, trace, gaussians, labels);
+    const title = [source.label || kindNames[source.kind], h('span', { class: 'muted' }, ` · ${kindNames[source.kind]}`)];
     return h(
       'div',
       { class: `readout-source${source.id === selectedId ? ' selected' : ''}` },
-      h(
-        'h3',
-        {},
-        source.label || kindNames[source.kind],
-        h('span', { class: 'muted' }, ` · ${kindNames[source.kind]}`),
-      ),
-      ...lines.map((line) => h('div', { class: `line ${lineClass(line)}` }, line)),
+      readoutTable(title, readout),
+      ...readout.notes.map((note) => h('div', { class: note.warn ? 'ro-note warn' : 'ro-note' }, note.text)),
     );
   });
   const warnings = describeWarnings(setup, trace.warnings);

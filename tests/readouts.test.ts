@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import type { FocusResult } from '../src/engine/focus';
 import type { GaussianTrace, Setup, Source } from '../src/engine/types';
-import { describeWarnings, formatFocus, formatGaussian, formatLength, formatMagnification, isOffAxis } from '../src/ui/readouts';
+import { describeWarnings, focusRows, formatLength, gaussianRows, isOffAxis, magnificationCell, objectSideRmsCell, type ReadoutRow } from '../src/ui/readouts';
 
-const NOTE = 'Tangential (meridional) rays only — sagittal focus not computed';
+const row = (rows: ReadoutRow[], label: string) => rows.find((r) => r.label === label);
+const texts = (r: ReadoutRow | undefined) => r?.cells.map((c) => c?.text ?? null);
 
 const focus = (over: Partial<FocusResult> = {}): FocusResult => ({
   wavelengthNm: 780,
@@ -30,73 +31,64 @@ const gaussian = (over: Partial<GaussianTrace> = {}): GaussianTrace => ({
   ...over,
 });
 
-describe('formatFocus', () => {
-  test('a line per wavelength and a signed focal shift, longer minus shorter', () => {
-    const lines = formatFocus([focus({ wavelengthNm: 852, paraxialZ: 200.41 }), focus({ wavelengthNm: 780, paraxialZ: 200 })], false);
-    expect(lines.filter((l) => l.startsWith('780 nm'))).toHaveLength(1);
-    expect(lines.filter((l) => l.startsWith('852 nm'))).toHaveLength(1);
-    expect(lines).toContain('Δfocus 780→852 nm: +410 µm');
+describe('focusRows', () => {
+  test('a column per wavelength and a signed focal shift from the column to the left', () => {
+    const rows = focusRows([focus({ wavelengthNm: 780, paraxialZ: 200 }), focus({ wavelengthNm: 852, paraxialZ: 200.41 })], false);
+    expect(texts(row(rows, 'Paraxial focus z'))).toEqual(['200.000 mm', '200.410 mm']);
+    expect(texts(row(rows, 'Focal shift'))).toEqual([null, '+410 µm']);
   });
 
   test('a shift to shorter focus is negative; a shift of a millimetre or more is in mm', () => {
-    const lines = formatFocus([focus({ wavelengthNm: 780, paraxialZ: 200 }), focus({ wavelengthNm: 1064, paraxialZ: 197.5 })], false);
-    expect(lines).toContain('Δfocus 780→1064 nm: -2.500 mm');
+    const rows = focusRows([focus({ wavelengthNm: 780, paraxialZ: 200 }), focus({ wavelengthNm: 1064, paraxialZ: 197.5 })], false);
+    expect(texts(row(rows, 'Focal shift'))).toEqual([null, '-2.500 mm']);
+  });
+
+  test('one wavelength has no focal shift row', () => {
+    expect(row(focusRows([focus()], false), 'Focal shift')).toBeUndefined();
   });
 
   test('absolute positions from a drawing lens are approximate; the shift is not', () => {
-    const lines = formatFocus(
-      [focus({ approximate: true }), focus({ wavelengthNm: 852, paraxialZ: 200.41, approximate: true })],
-      false,
-    );
-    const shift = lines.find((l) => l.startsWith('Δfocus'))!;
-    expect(shift).not.toContain('approx.');
-    const perWavelength = lines.filter((l) => /^\d+ nm:/.test(l));
-    expect(perWavelength).toHaveLength(2);
-    for (const line of perWavelength) expect(line).toContain('approx.');
-    expect(formatFocus([focus()], false)[0]).not.toContain('approx.');
+    const rows = focusRows([focus({ approximate: true }), focus({ wavelengthNm: 852, paraxialZ: 200.41, approximate: true })], false);
+    expect(texts(row(rows, 'Focal shift'))!.join()).not.toContain('≈');
+    for (const label of ['Paraxial focus z', 'Best focus z']) for (const text of texts(row(rows, label))!) expect(text).toMatch(/^≈/);
+    expect(texts(row(focusRows([focus()], false), 'Paraxial focus z'))![0]).not.toContain('≈');
   });
 
   test('collimated and blocked wavelengths say so instead of giving numbers', () => {
-    const lines = formatFocus(
-      [
-        focus({ status: 'collimated', paraxialZ: null, bestZ: null, rmsAtBestMm: null, imageHeightMm: null }),
-        focus({ wavelengthNm: 852, status: 'no-rays', paraxialZ: null, bestZ: null, rmsAtBestMm: null, imageHeightMm: null }),
-      ],
-      false,
-    );
-    expect(lines[0]).toBe('780 nm: no focus (collimated)');
-    expect(lines[1]).toBe('852 nm: No rays reach this point');
-    expect(lines.join('\n')).not.toMatch(/NaN|Infinity|Δfocus/);
+    const none = { paraxialZ: null, bestZ: null, rmsAtBestMm: null, imageHeightMm: null };
+    const rows = focusRows([focus({ status: 'collimated', ...none }), focus({ wavelengthNm: 852, status: 'no-rays', ...none })], false);
+    expect(rows).toHaveLength(1);
+    expect(texts(rows[0])).toEqual(['none (collimated)', 'No rays reach this point']);
+    const mixed = focusRows([focus(), focus({ wavelengthNm: 852, status: 'no-rays', ...none })], false);
+    expect(texts(row(mixed, 'Paraxial focus z'))![1]).toBe('No rays reach this point');
+    expect(JSON.stringify(mixed)).not.toMatch(/NaN|Infinity/);
   });
 
-  test('an off-axis source carries the meridional note', () => {
-    expect(formatFocus([focus()], true)).toContain(NOTE);
-    expect(formatFocus([focus()], false)).not.toContain(NOTE);
+  test('off axis adds the image height', () => {
+    expect(row(focusRows([focus()], true), 'Image height y')).toBeDefined();
+    expect(row(focusRows([focus()], false), 'Image height y')).toBeUndefined();
   });
 });
 
-describe('formatGaussian', () => {
+describe('gaussianRows', () => {
   const labels = { l1: 'L1', l2: 'L2' };
 
-  test('lists each waist with its position and radius', () => {
-    const lines = formatGaussian(gaussian(), labels);
-    expect(lines).toContain('780 nm input waist: w₀ = 500 µm at z = 0.000 mm');
-    expect(lines).toContain('780 nm after L1: w₀ = 40.0 µm at z = 150.250 mm');
+  test('a row per waist with its radius and position', () => {
+    const { rows } = gaussianRows([gaussian()], labels);
+    expect(texts(row(rows, 'Input waist'))).toEqual(['w₀ 500 µm at z 0.000 mm']);
+    expect(texts(row(rows, 'After L1'))).toEqual(['w₀ 40.0 µm at z 150.250 mm']);
   });
 
   test('a collimated waist reads "collimated", not a far-away position', () => {
-    const lines = formatGaussian(
-      gaussian({ waists: [{ afterOpticId: 'l1', z: 1e15, radiusMm: 2.5, collimated: true }] }),
-      labels,
-    );
-    expect(lines[0]).toContain('collimated');
-    expect(lines.join('\n')).not.toMatch(/e\+|1000000/);
+    const { rows } = gaussianRows([gaussian({ waists: [{ afterOpticId: 'l1', z: 1e15, radiusMm: 2.5, collimated: true }] })], labels);
+    expect(texts(rows[0])![0]).toContain('collimated');
+    expect(JSON.stringify(rows)).not.toMatch(/e\+|1000000/);
   });
 
-  test('a clipped beam is marked unreliable, naming the element', () => {
-    const lines = formatGaussian(gaussian({ warnings: [{ kind: 'clipped', opticId: 'l2' }] }), labels);
-    expect(lines.some((l) => l.includes('unreliable: beam clipped at L2'))).toBe(true);
-    expect(lines.some((l) => l.includes('after L1'))).toBe(true);
+  test('a clipped beam is noted as unreliable, naming the element', () => {
+    const { rows, notes } = gaussianRows([gaussian({ warnings: [{ kind: 'clipped', opticId: 'l2' }] })], labels);
+    expect(notes).toEqual([{ text: 'Unreliable: beam clipped at L2', warn: true }]);
+    expect(row(rows, 'After L1')).toBeDefined();
   });
 });
 
@@ -161,21 +153,21 @@ describe('describeWarnings', () => {
   });
 });
 
-describe('formatMagnification', () => {
+describe('magnificationCell', () => {
   test('4 significant figures, signed, or why there is no number', () => {
-    expect(formatMagnification({ wavelengthNm: 780, value: -1.00100256 })).toBe(', M = -1.001');
-    expect(formatMagnification({ wavelengthNm: 780, value: 28.70701 })).toBe(', M = 28.71');
-    expect(formatMagnification({ wavelengthNm: 780, value: 1e-15 })).toBe(', M = 0.000');
-    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'edge-ray-blocked' })).toBe(', M: edge ray blocked');
-    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'undefined' })).toBe(', M undefined (no beam width)');
-    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'no-rays' })).toBe(', M unavailable');
-    expect(formatMagnification(undefined)).toBe('');
+    expect(magnificationCell({ wavelengthNm: 780, value: -1.00100256 })).toEqual({ text: '-1.001' });
+    expect(magnificationCell({ wavelengthNm: 780, value: 28.70701 })).toEqual({ text: '28.71' });
+    expect(magnificationCell({ wavelengthNm: 780, value: 1e-15 })).toEqual({ text: '0.000' });
+    expect(magnificationCell({ wavelengthNm: 780, value: null, reason: 'edge-ray-blocked' })).toEqual({ text: 'edge ray blocked', warn: true });
+    expect(magnificationCell({ wavelengthNm: 780, value: null, reason: 'undefined' })).toEqual({ text: 'undefined (no beam width)' });
+    expect(magnificationCell({ wavelengthNm: 780, value: null, reason: 'no-rays' })).toEqual({ text: 'unavailable' });
+    expect(magnificationCell(undefined)).toBeNull();
   });
 
-  test('with a spot RMS, the blur referred to the object as well', () => {
-    expect(formatMagnification({ wavelengthNm: 780, value: 28.707 }, 0.048)).toBe(', M = 28.71, object-side RMS 1.67 µm');
-    expect(formatMagnification({ wavelengthNm: 780, value: -2 }, 0.004)).toBe(', M = -2.000, object-side RMS 2.00 µm');
-    expect(formatMagnification({ wavelengthNm: 780, value: 0 }, 0.004)).toBe(', M = 0.000');
-    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'no-rays' }, 0.004)).toBe(', M unavailable');
+  test('the object-side RMS is the spot RMS over |M|, when there is a usable M', () => {
+    expect(objectSideRmsCell({ wavelengthNm: 780, value: 28.707 }, 0.048)).toEqual({ text: '1.67 µm' });
+    expect(objectSideRmsCell({ wavelengthNm: 780, value: -2 }, 0.004)).toEqual({ text: '2.00 µm' });
+    expect(objectSideRmsCell({ wavelengthNm: 780, value: 0 }, 0.004)).toBeNull();
+    expect(objectSideRmsCell({ wavelengthNm: 780, value: null, reason: 'no-rays' }, 0.004)).toBeNull();
   });
 });

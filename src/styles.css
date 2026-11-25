@@ -732,13 +732,89 @@ dialog.message .buttons {
   color: var(--accent);
 }
 
+.readout-source + .readout-source {
+  margin-top: 6px;
+}
+
+table.readout-table {
+  border-collapse: collapse;
+  margin-top: 4px;
+}
+
+table.readout-table th,
+table.readout-table td {
+  padding: 1px 18px 1px 0;
+  font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+table.readout-table th:last-child,
+table.readout-table td:last-child {
+  padding-right: 0;
+}
+
+table.readout-table th[scope='row'],
+table.readout-table th.ro-title {
+  text-align: left;
+}
+
+table.readout-table thead th {
+  padding-bottom: 2px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+table.readout-table .ro-title .muted {
+  font-weight: 400;
+}
+
+.readout-source.selected .ro-title {
+  color: var(--accent);
+}
+
+.ro-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 5px;
+  border-radius: 50%;
+}
+
+table.readout-table tbody th {
+  color: var(--muted);
+}
+
+table.readout-table tr.ro-heading th {
+  padding-top: 5px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+table.readout-table tr.ro-sub th {
+  padding-left: 12px;
+}
+
+table.readout-table td.warn {
+  color: var(--warn);
+  white-space: normal;
+}
+
+.ro-note {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.ro-note.warn {
+  font-style: normal;
+  color: var(--warn);
+}
+
 .line {
   padding-left: 10px;
   text-indent: -10px;
-}
-
-.line.shift {
-  font-weight: 600;
 }
 
 .line.warn,

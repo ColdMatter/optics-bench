@@ -78,7 +78,7 @@ await step('bench is drawn', async () => {
 });
 
 await step('readouts show a focal shift', async () => {
-  assert.match(await page.locator('section.readouts').innerText(), /Δfocus/);
+  assert.match(await page.locator('section.readouts table.readout-table').first().innerText(), /Focal shift/);
 });
 
 // The view's mm-to-pixel mapping, read back from the hover tooltip at two points.
