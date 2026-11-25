@@ -1,17 +1,23 @@
 import bundledGlasses from '../data/glasses.json';
 import { makeGlassLookup } from '../engine/glass';
 import { lensAbcd } from '../engine/lens';
+import { withLens, withoutLens, type GlassChoice, type LocalLensEntry, type LocalLensFile } from '../engine/lensLibrary';
 import { decodeZmx, parseZmx, ZmxError } from '../engine/zmx';
-import type { CatalogueLens, GlassData, LensPrescription, Setup } from '../engine/types';
+import type { CatalogueLens, GlassData, GlassLookup, LensPrescription, Setup } from '../engine/types';
 import { formatShort, h, pickFile } from './controls';
 import { catalogue, insertElement, newOptic } from './elements';
+import { connectLocal, localCatalogueSupported, localStatus, updateLocal, type LocalStatus } from './localCatalogue';
 import type { Store } from './store';
+
+export type { GlassChoice };
 
 export interface CatalogueEntry {
   prescription: LensPrescription;
   focalLengthMm: number;
   diameterMm: number;
   type: string;
+  /** Set for a lens from the local catalogue file. */
+  local?: LocalLensEntry;
 }
 
 // Thorlabs quotes an achromat's focal length at the centre of its coating band, a singlet's at 587.6 nm.
@@ -32,10 +38,11 @@ function designWavelengthNm(p: LensPrescription): number {
   return coating ? BAND_CENTRE_NM[coating]! : SINGLET_DESIGN_NM;
 }
 
-/** Paraxial effective focal length at the lens's design wavelength. */
-export function nominalFocalLengthMm(p: LensPrescription): number {
+/** Paraxial effective focal length at the lens's design wavelength; NaN if a glass is unknown. */
+export function nominalFocalLengthMm(p: LensPrescription, glasses: GlassLookup = bundledLookup): number {
+  if (p.surfaces.some((s) => s.glassAfter !== null && !glasses(s.glassAfter))) return NaN;
   const lens: CatalogueLens = { kind: 'lens', id: '', label: '', z: 0, decentreMm: 0, tiltDeg: 0, prescription: p, flipped: false };
-  return -1 / lensAbcd(lens, designWavelengthNm(p), bundledLookup)[2];
+  return -1 / lensAbcd(lens, designWavelengthNm(p), glasses)[2];
 }
 
 function lensType(p: LensPrescription): string {
@@ -45,13 +52,22 @@ function lensType(p: LensPrescription): string {
   return elements === 2 ? 'Cemented doublet' : `Cemented ${elements}-element lens`;
 }
 
-export function catalogueEntries(lenses: LensPrescription[] = catalogue): CatalogueEntry[] {
-  return lenses.map((prescription) => ({
+function entryFor(prescription: LensPrescription, glasses: GlassLookup = bundledLookup): CatalogueEntry {
+  return {
     prescription,
-    focalLengthMm: nominalFocalLengthMm(prescription),
+    focalLengthMm: nominalFocalLengthMm(prescription, glasses),
     diameterMm: 2 * Math.max(...prescription.surfaces.map((s) => s.semiDiameterMm)),
     type: lensType(prescription),
-  }));
+  };
+}
+
+export function catalogueEntries(lenses: LensPrescription[] = catalogue): CatalogueEntry[] {
+  return lenses.map((p) => entryFor(p));
+}
+
+/** Entries for the lenses in a local catalogue file, with their substitute glasses applied. */
+export function localEntries(file: LocalLensFile): CatalogueEntry[] {
+  return file.lenses.map((local) => ({ ...entryFor(local.prescription, makeGlassLookup(substitutedGlasses(local.substitutions))), local }));
 }
 
 /** Entries whose part number contains the query, or, for a number, whose focal length is within 2 % of it. */
@@ -73,8 +89,6 @@ export function unknownGlasses(p: LensPrescription, setupGlasses: Setup['glasses
   return [...new Set(names)];
 }
 
-export type GlassChoice = { kind: 'bundled'; name: string } | { kind: 'index'; index: number };
-
 /** The chosen data under the unknown glass's name, so the lens's surfaces resolve to it. */
 export function substituteGlass(unknownName: string, choice: GlassChoice): GlassData {
   if (choice.kind === 'index') {
@@ -83,6 +97,15 @@ export function substituteGlass(unknownName: string, choice: GlassChoice): Glass
   const glass = bundledLookup(choice.name);
   if (!glass) throw new Error(`${choice.name} is not a bundled glass`);
   return { ...glass, coefficients: [...glass.coefficients], rangeUm: [...glass.rangeUm], name: unknownName };
+}
+
+/** Glass data for each substitution that still resolves (a bundled substitute may have been renamed). */
+export function substitutedGlasses(substitutions: Record<string, GlassChoice>): Record<string, GlassData> {
+  const glasses: Record<string, GlassData> = {};
+  for (const [name, choice] of Object.entries(substitutions)) {
+    if (choice.kind === 'index' || bundledLookup(choice.name)) glasses[name] = substituteGlass(name, choice);
+  }
+  return glasses;
 }
 
 export function parseConstantIndex(text: string): { index: number } | { error: string } {
@@ -137,11 +160,20 @@ function glassRow(name: string, datalistId: string, onChange: () => void): { row
   return { row, glass: { name, read } };
 }
 
-/** The modal lens browser: search the bundled catalogue, add a part, or import a .zmx. */
+const describe = (e: unknown) => (e instanceof Error ? e.message : String(e));
+const partName = (p: LensPrescription) => p.partNumber || 'The lens';
+
+/**
+ * The modal lens browser: search the bundled and local catalogues, add a part, or import a .zmx.
+ * An imported lens goes into the setup and into the local catalogue file, if one is connected.
+ */
 export function openCatalogue(store: Store): void {
-  const entries = catalogueEntries();
+  const bundledEntries = catalogueEntries();
+  let entries = bundledEntries;
   let shown = entries;
   let chosen: CatalogueEntry | null = null;
+  let checking = localCatalogueSupported();
+  let local: LocalStatus = { kind: checking ? 'none' : 'unsupported' };
 
   const search = h('input', {
     type: 'search',
@@ -159,19 +191,30 @@ export function openCatalogue(store: Store): void {
     h(
       'thead',
       {},
-      h('tr', {}, h('th', {}, 'Part'), h('th', { class: 'num', title: 'Paraxial focal length at 535 nm (-A coating), 855 nm (-B) or 587.6 nm (singlets)' }, 'f (mm)'), h('th', { class: 'num' }, '⌀ (mm)'), h('th', {}, 'Type')),
+      h(
+        'tr',
+        {},
+        h('th', {}, 'Part'),
+        h('th', { class: 'num', title: 'Paraxial focal length at 535 nm (-A coating), 855 nm (-B) or 587.6 nm (others)' }, 'f (mm)'),
+        h('th', { class: 'num' }, '⌀ (mm)'),
+        h('th', {}, 'Type'),
+        h('th', { 'aria-label': 'Remove' }),
+      ),
     ),
     tbody,
   );
   const listWrap = h('div', { class: 'cat-list' }, table);
+  const localLine = h('div', { class: 'cat-local' });
   const message = h('div', { class: 'cat-message', role: 'alert' });
   const glassSection = h('div', { class: 'cat-glasses' });
   glassSection.hidden = true;
+  const savePanel = h('div', { class: 'cat-save' });
+  savePanel.hidden = true;
 
-  const importButton = h('button', { title: 'Read a Zemax .zmx lens file' }, 'Import .zmx…');
+  const importButton = h('button', { title: 'Read a Zemax .zmx lens file into the setup and the local catalogue' }, 'Import .zmx…');
   const closeButton = h('button', {}, 'Close');
   const addButton = h('button', { class: 'primary' }, 'Add');
-  const browseView = h('div', { class: 'cat-browse' }, h('div', { class: 'cat-search-row' }, search, count), listWrap);
+  const browseView = h('div', { class: 'cat-browse' }, h('div', { class: 'cat-search-row' }, search, count), listWrap, localLine);
   const actions = h('div', { class: 'cat-actions' }, importButton, h('span', { class: 'spacer' }), closeButton, addButton);
   const dialog = h(
     'dialog',
@@ -179,6 +222,7 @@ export function openCatalogue(store: Store): void {
     h('h3', {}, 'Add a catalogue lens'),
     browseView,
     glassSection,
+    savePanel,
     message,
     actions,
   );
@@ -187,10 +231,85 @@ export function openCatalogue(store: Store): void {
   dialog.addEventListener('close', () => dialog.remove());
   closeButton.addEventListener('click', close);
 
-  const insert = (prescription: LensPrescription, glasses: Record<string, GlassData> = {}) => {
+  const placeLens = (prescription: LensPrescription, glasses: Record<string, GlassData> = {}) =>
     insertElement(store, newOptic('lens', store.get(), prescription), glasses);
+  const insert = (prescription: LensPrescription, glasses: Record<string, GlassData> = {}) => {
+    placeLens(prescription, glasses);
     close();
   };
+
+  function setLocal(status: LocalStatus) {
+    local = status;
+    checking = false;
+    const wasLocal = chosen?.local ? chosen.prescription.partNumber : null;
+    entries = status.kind === 'ready' ? [...localEntries(status.file), ...bundledEntries] : bundledEntries;
+    if (wasLocal !== null) chosen = entries.find((e) => e.local && e.prescription.partNumber === wasLocal) ?? null;
+    renderLocal();
+    renderList();
+  }
+
+  /** Buttons to connect a catalogue file; `then` runs once one is ready. */
+  function connectButtons(then: (status: LocalStatus & { kind: 'ready' }) => void): HTMLElement[] {
+    const connect = async (how: 'open' | 'new') => {
+      const status = await connectLocal(how);
+      if (!status) return;
+      if (status.kind === 'error') {
+        message.textContent = `Could not use ${status.name || 'that file'}: ${status.message}`;
+        setLocal(await localStatus());
+        return;
+      }
+      message.textContent = '';
+      setLocal(status);
+      if (status.kind === 'ready') then(status);
+    };
+    const buttons = [
+      h('button', { title: 'Use an existing lens catalogue file' }, 'Open file…'),
+      h('button', { title: 'Create a new lens catalogue file' }, 'New file…'),
+    ];
+    buttons[0]!.addEventListener('click', () => connect('open'));
+    buttons[1]!.addEventListener('click', () => connect('new'));
+    if (local.kind === 'needs-permission') {
+      const reconnect = h('button', { title: `Let the app read and write ${local.name} again` }, 'Reconnect');
+      reconnect.addEventListener('click', async () => {
+        const status = await localStatus(true);
+        setLocal(status);
+        if (status.kind === 'ready') then(status);
+      });
+      buttons.unshift(reconnect);
+    }
+    return buttons;
+  }
+
+  function renderLocal() {
+    const text = (() => {
+      if (checking) return 'Local catalogue: checking…';
+      switch (local.kind) {
+        case 'unsupported':
+          return 'Imported lenses go only into the setup: the local catalogue needs Chrome or Edge.';
+        case 'none':
+          return 'No local catalogue file: imported lenses go only into the setup.';
+        case 'needs-permission':
+          return `Local catalogue: ${local.name} needs permission again.`;
+        case 'ready':
+          return `Local catalogue: ${local.name} (${local.file.lenses.length} ${local.file.lenses.length === 1 ? 'lens' : 'lenses'})`;
+        case 'error':
+          return `Local catalogue${local.name ? ` ${local.name}` : ''}: ${local.message}`;
+      }
+    })();
+    const buttons = checking || local.kind === 'unsupported' ? [] : connectButtons(() => {});
+    localLine.replaceChildren(h('span', { class: local.kind === 'error' ? 'cat-local-text error' : 'cat-local-text muted' }, text), ...buttons);
+  }
+
+  async function removeLocal(entry: CatalogueEntry) {
+    const part = entry.prescription.partNumber;
+    const file = local.kind === 'ready' ? local.name : 'the local catalogue';
+    if (!window.confirm(`Remove ${part} from ${file}? Setups that already use it keep their own copy.`)) return;
+    try {
+      setLocal(await updateLocal((f) => withoutLens(f, part)));
+    } catch (e) {
+      message.textContent = `Could not remove ${part}: ${describe(e)}`;
+    }
+  }
 
   function renderList() {
     shown = filterCatalogue(entries, search.value);
@@ -199,23 +318,38 @@ export function openCatalogue(store: Store): void {
     count.textContent = `${shown.length} of ${entries.length}`;
     tbody.replaceChildren(
       ...shown.map((entry) => {
+        let removeCell: HTMLElement = h('td');
+        if (entry.local) {
+          const remove = h(
+            'button',
+            { class: 'cat-remove', title: `Remove ${entry.prescription.partNumber} from the local catalogue`, 'aria-label': 'Remove' },
+            '✕',
+          );
+          remove.addEventListener('click', (e) => {
+            e.stopPropagation();
+            void removeLocal(entry);
+          });
+          remove.addEventListener('dblclick', (e) => e.stopPropagation());
+          removeCell = h('td', { class: 'cat-remove-cell' }, remove);
+        }
         const row = h(
           'tr',
           { class: entry === chosen ? 'selected' : '', 'aria-selected': String(entry === chosen) },
-          h('td', {}, entry.prescription.partNumber),
-          h('td', { class: 'num' }, entry.focalLengthMm.toFixed(1)),
+          h('td', {}, entry.prescription.partNumber, entry.local ? h('span', { class: 'cat-tag', title: 'From your local catalogue file' }, 'Local') : null),
+          h('td', { class: 'num' }, Number.isFinite(entry.focalLengthMm) ? entry.focalLengthMm.toFixed(1) : '—'),
           h('td', { class: 'num' }, formatShort(entry.diameterMm)),
           h('td', { class: 'muted' }, entry.type),
+          removeCell,
         );
         row.addEventListener('click', () => {
           chosen = entry;
           renderList();
         });
-        row.addEventListener('dblclick', () => insert(entry.prescription));
+        row.addEventListener('dblclick', () => add(entry));
         return row;
       }),
     );
-    if (shown.length === 0) tbody.append(h('tr', {}, h('td', { colspan: 4, class: 'muted' }, 'No part matches. Import its .zmx instead.')));
+    if (shown.length === 0) tbody.append(h('tr', {}, h('td', { colspan: 5, class: 'muted' }, 'No part matches. Import its .zmx instead.')));
     addButton.disabled = chosen === null;
   }
 
@@ -223,7 +357,7 @@ export function openCatalogue(store: Store): void {
   search.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && chosen) {
       e.preventDefault();
-      insert(chosen.prescription);
+      add(chosen);
     } else if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && shown.length) {
       e.preventDefault();
       const i = chosen ? shown.indexOf(chosen) : -1;
@@ -233,33 +367,42 @@ export function openCatalogue(store: Store): void {
     }
   });
   addButton.addEventListener('click', () => {
-    if (chosen) insert(chosen.prescription);
+    if (chosen) add(chosen);
   });
 
   function showBrowse() {
     glassSection.hidden = true;
+    savePanel.hidden = true;
     browseView.hidden = false;
     actions.hidden = false;
     search.focus();
   }
 
-  function chooseGlasses(prescription: LensPrescription, names: string[]) {
+  function showPanel(panel: HTMLElement) {
+    browseView.hidden = true;
+    actions.hidden = true;
+    glassSection.hidden = panel !== glassSection;
+    savePanel.hidden = panel !== savePanel;
+  }
+
+  /** Asks for a substitute for each glass in `names`, then hands the choices to `done`. */
+  function chooseGlasses(prescription: LensPrescription, names: string[], cancelText: string, done: (choices: Record<string, GlassChoice>) => void) {
     const datalistId = 'bundled-glass-names';
     const datalist = h('datalist', { id: datalistId }, ...bundledGlassNames.map((n) => h('option', { value: n })));
     const insertButton = h('button', { class: 'primary' }, 'Insert lens');
-    const cancelButton = h('button', {}, 'Cancel import');
+    const cancelButton = h('button', {}, cancelText);
     const rows = names.map((name) => glassRow(name, datalistId, update));
     function update() {
       insertButton.disabled = rows.some((r) => r.glass.read() === null);
     }
     insertButton.addEventListener('click', () => {
-      const glasses: Record<string, GlassData> = {};
+      const choices: Record<string, GlassChoice> = {};
       for (const { glass } of rows) {
         const choice = glass.read();
         if (!choice) return;
-        glasses[glass.name] = substituteGlass(glass.name, choice);
+        choices[glass.name] = choice;
       }
-      insert(prescription, glasses);
+      done(choices);
     });
     cancelButton.addEventListener('click', () => {
       message.textContent = '';
@@ -269,18 +412,66 @@ export function openCatalogue(store: Store): void {
       h(
         'p',
         {},
-        `${prescription.partNumber || 'This lens'} uses ${names.length === 1 ? 'a glass' : 'glasses'} not in the bundled data. ` +
-          'Choose a substitute glass or type a constant index for each; the choice is saved with the setup under the original name.',
+        `${partName(prescription)} uses ${names.length === 1 ? 'a glass' : 'glasses'} not in the bundled data. ` +
+          'Choose a substitute glass or type a constant index for each; the choice is saved with the setup under the original name' +
+          (local.kind === 'unsupported' ? '.' : ', and in the local catalogue.'),
       ),
       datalist,
       ...rows.map((r) => r.row),
       h('div', { class: 'cat-actions' }, h('span', { class: 'spacer' }), cancelButton, insertButton),
     );
     update();
-    browseView.hidden = true;
-    actions.hidden = true;
-    glassSection.hidden = false;
+    showPanel(glassSection);
     rows[0]?.row.querySelector('input')?.focus();
+  }
+
+  /** Writes `entry` to the local file and closes, or says why it couldn't. */
+  async function saveLocal(entry: LocalLensEntry, onlyIfPresent = false) {
+    try {
+      setLocal(
+        await updateLocal((f) =>
+          onlyIfPresent && !f.lenses.some((l) => l.prescription.partNumber === entry.prescription.partNumber) ? f : withLens(f, entry),
+        ),
+      );
+      close();
+    } catch (e) {
+      showBrowse();
+      message.textContent = `${partName(entry.prescription)} was added to the setup but not saved to the local catalogue: ${describe(e)}`;
+    }
+  }
+
+  /** After an import is in the setup: save it locally, or offer to connect a file first. */
+  async function keepImported(entry: LocalLensEntry) {
+    await initialStatus;
+    if (local.kind === 'ready') return void saveLocal(entry);
+    if (local.kind === 'unsupported') return close();
+    const notNow = h('button', {}, 'Not now');
+    notNow.addEventListener('click', close);
+    savePanel.replaceChildren(
+      h(
+        'p',
+        {},
+        `${partName(entry.prescription)} is in the setup. To keep it in your local catalogue, ` +
+          (local.kind === 'needs-permission' ? `reconnect ${local.name} or choose another file.` : 'open or create a catalogue file.'),
+      ),
+      h('div', { class: 'cat-actions' }, ...connectButtons(() => void saveLocal(entry)), h('span', { class: 'spacer' }), notNow),
+    );
+    showPanel(savePanel);
+  }
+
+  /** Adds a catalogue entry to the setup, applying a local lens's saved glass substitutes. */
+  function add(entry: CatalogueEntry) {
+    if (!entry.local) return insert(entry.prescription);
+    const { prescription, substitutions } = entry.local;
+    const needed = unknownGlasses(prescription, store.get().setup.glasses);
+    const available = substitutedGlasses(substitutions);
+    const glasses = Object.fromEntries(needed.flatMap((n) => (available[n] ? [[n, available[n]]] : [])));
+    const missing = needed.filter((n) => !glasses[n]);
+    if (missing.length === 0) return insert(prescription, glasses);
+    chooseGlasses(prescription, missing, 'Cancel', (choices) => {
+      placeLens(prescription, { ...glasses, ...substitutedGlasses(choices) });
+      void saveLocal({ prescription, substitutions: { ...substitutions, ...choices } }, true);
+    });
   }
 
   importButton.addEventListener('click', async () => {
@@ -296,10 +487,19 @@ export function openCatalogue(store: Store): void {
       return;
     }
     const unknown = unknownGlasses(prescription, store.get().setup.glasses);
-    if (unknown.length === 0) insert(prescription);
-    else chooseGlasses(prescription, unknown);
+    if (unknown.length === 0) {
+      placeLens(prescription);
+      void keepImported({ prescription, substitutions: {} });
+      return;
+    }
+    chooseGlasses(prescription, unknown, 'Cancel import', (choices) => {
+      placeLens(prescription, substitutedGlasses(choices));
+      void keepImported({ prescription, substitutions: choices });
+    });
   });
 
+  const initialStatus = checking ? localStatus().then(setLocal) : Promise.resolve();
+  renderLocal();
   renderList();
   document.body.append(dialog);
   dialog.showModal();

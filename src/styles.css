@@ -940,8 +940,54 @@ table.cat-table tbody tr.selected {
   margin-top: 10px;
 }
 
-.cat-glasses p {
+.cat-glasses p,
+.cat-save p {
   margin: 0 0 8px;
+}
+
+.cat-local {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.cat-local-text {
+  flex: 1 1 220px;
+  overflow-wrap: anywhere;
+}
+
+.cat-local-text.error {
+  color: var(--danger);
+}
+
+.cat-tag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-weak);
+}
+
+table.cat-table td.cat-remove-cell {
+  width: 1%;
+  padding: 0 4px;
+  text-align: right;
+}
+
+button.cat-remove {
+  padding: 0 5px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+button.cat-remove:hover {
+  color: var(--danger);
 }
 
 .glass-row {

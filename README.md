@@ -47,6 +47,12 @@ Every value can also be typed into the elements table or the properties panel. E
 
 **Add optic ▸ Catalogue lens…** opens the bundled catalogue, which you can search by part number or focal length. **Add** inserts the lens after the selected element. For a part that isn't bundled, use **Import .zmx…** and pick the vendor's Zemax file. A file the tracer can't represent (coordinate breaks, mirrors, surface types such as toroidal) is rejected with a message naming the surface. Inch units and UTF-16 files are read normally. If the file names a glass that isn't bundled, pick a substitute from the bundled glasses or type a constant index. The choice is saved with the setup.
 
+### Local catalogue
+
+In Chrome or Edge, an imported lens is also kept in a **local catalogue**: a JSON file of your own, such as `my-lenses.json`, that the app reads and writes in place. The first import offers **Open file…** or **New file…** to choose it. Put it in a synced folder to share it between computers. From then on its lenses appear at the top of the catalogue list, tagged **Local**, with any glass substitutes you chose, and **✕** removes one from the file. Re-importing a part replaces its entry. The app remembers the file; after a browser restart, **Reconnect** grants access again. Firefox and Safari can't write local files, so there an import goes only into the setup.
+
+A local catalogue file is `{ "version": 1, "lenses": [ { "prescription": …, "substitutions": { "<glass>": { "kind": "bundled", "name": "N-SF6" } | { "kind": "index", "index": 1.72 } } } ] }`, with `prescription` as in the save file format below.
+
 ## Examples
 
 `examples/basics/` is a numbered series of small setups, each demonstrating one feature (sources, lens orientation, chromatic focus, apertures, screens, SLM terms, warnings, the solver), with something to try in each. `examples/tweezer-imaging/` models chromatic aberration in the CaF/Rb tweezer imaging path. `examples/README.md` describes them all.
@@ -81,6 +87,15 @@ npm run glasses -- <path-to-clone>
 npm run lenses              # download into scripts/vendor-cache/, then rebuild
 npm run lenses -- --offline # rebuild from the cache
 ```
+
+`src/data/extra-lenses.json` holds lenses promoted from a local catalogue, and the app lists them with the Thorlabs ones. `npm run lenses` leaves it alone. To promote lenses, then rebuild and commit:
+
+```
+npm run promote-lenses -- path/to/my-lenses.json              # every lens in the file
+npm run promote-lenses -- path/to/my-lenses.json XY-100 XY-200  # just these parts
+```
+
+The shared catalogue has no room for glass substitutes. A glass you replaced with a bundled glass is renamed to it in the promoted lens. A lens with a constant-index substitute, or with a non-bundled glass that has no substitute, is refused. So are Thorlabs parts, and parts already promoted unless you pass `--replace`.
 
 ## Save file format
 

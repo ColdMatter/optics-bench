@@ -1,10 +1,12 @@
+import extraLenses from '../data/extra-lenses.json';
 import lenses from '../data/lenses.json';
 import { newId } from '../engine/io';
 import { opticExtent } from '../engine/optic';
 import type { GlassData, Id, LensPrescription, Optic, Setup, Source, TraceWarning } from '../engine/types';
 import type { AppState, Store } from './store';
 
-export const catalogue = lenses as LensPrescription[];
+/** The shared catalogue: the Thorlabs parts, then lenses promoted with `npm run promote-lenses`. */
+export const catalogue = [...lenses, ...extraLenses] as LensPrescription[];
 const DEFAULT_LENS = 'AC254-100-B';
 const GAP_MM = 25;
 

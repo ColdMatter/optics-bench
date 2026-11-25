@@ -154,7 +154,7 @@ function readSurface(v: unknown, path: string, last: boolean): PrescriptionSurfa
   };
 }
 
-function readPrescription(v: unknown, path: string): LensPrescription {
+export function readPrescription(v: unknown, path: string): LensPrescription {
   const o = obj(v, path);
   const surfacesPath = at(path, 'surfaces');
   const surfaces = arr(o.surfaces, surfacesPath);
