@@ -11,7 +11,12 @@ import { traceSetup } from '../src/engine/trace';
 
 const mm = (v: number | null) => (v === null ? '—' : `${v.toFixed(3)} mm`);
 const um = (v: number | null) => (v === null ? '—' : `${(v * 1e3).toFixed(2)} µm`);
-const mag = (m: Magnification | undefined) => (!m ? '' : m.value === null ? `, M — (${m.reason})` : `, M ${m.value.toPrecision(6)}`);
+const mag = (m: Magnification | undefined, spotRmsMm?: number | null) => {
+  if (!m) return '';
+  if (m.value === null) return `, M — (${m.reason})`;
+  const objectSide = spotRmsMm != null && Math.abs(m.value) > 1e-9 ? `, object-side RMS ${um(spotRmsMm / Math.abs(m.value))}` : '';
+  return `, M ${m.value.toPrecision(6)}${objectSide}`;
+};
 
 let failed = false;
 for (const file of process.argv.slice(2)) {
@@ -31,7 +36,8 @@ for (const file of process.argv.slice(2)) {
   for (const source of setup.sources) {
     console.log(`  ${source.label} (${source.kind}, id ${source.id})`);
     const magnifications = screenMagnifications(setup, source.id);
-    const magAt = (screenId: string, nm: number) => mag(magnifications.get(screenId)?.find((m) => m.wavelengthNm === nm));
+    const magAt = (screenId: string, nm: number, spotRmsMm?: number | null) =>
+      mag(magnifications.get(screenId)?.find((m) => m.wavelengthNm === nm), spotRmsMm);
     if (source.kind === 'gaussian') {
       for (const screen of screens) {
         if (screen.z < source.z) continue;
@@ -51,7 +57,7 @@ for (const file of process.argv.slice(2)) {
       for (const screen of screens) {
         for (const spot of screenStats(sourceTrace, screen.id)) {
           console.log(
-            `    ${screen.label} @ z ${screen.z}, ${spot.wavelengthNm} nm: ${spot.heightsMm.length} rays, centroid ${mm(spot.centroidMm)}, RMS ${um(spot.rmsMm)}${magAt(screen.id, spot.wavelengthNm)}`,
+            `    ${screen.label} @ z ${screen.z}, ${spot.wavelengthNm} nm: ${spot.heightsMm.length} rays, centroid ${mm(spot.centroidMm)}, RMS ${um(spot.rmsMm)}${magAt(screen.id, spot.wavelengthNm, source.kind === 'point' ? spot.rmsMm : null)}`,
           );
         }
       }

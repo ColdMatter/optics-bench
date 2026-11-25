@@ -25,8 +25,11 @@ export function formatLength(lengthMm: number): string {
   return Math.abs(um) < 0.01 ? `${um.toFixed(2)} µm` : `${um.toPrecision(3)} µm`;
 }
 
-/** The magnification suffix for a screen line: `, M = −1.500`, or why there is none. */
-export function formatMagnification(m: Magnification | undefined): string {
+/**
+ * The magnification suffix for a screen line: `, M = −1.500`, or why there is none. Given a point
+ * source's spot RMS, it adds the blur referred back to the object, RMS/|M|.
+ */
+export function formatMagnification(m: Magnification | undefined, spotRmsMm?: number): string {
   if (!m) return '';
   if (m.value === null) {
     if (m.reason === 'edge-ray-blocked') return ', M: edge ray blocked';
@@ -34,7 +37,9 @@ export function formatMagnification(m: Magnification | undefined): string {
     return ', M unavailable';
   }
   const v = Math.abs(m.value) < 1e-12 ? 0 : m.value;
-  return `, M = ${v.toPrecision(4)}`;
+  const objectSide =
+    spotRmsMm !== undefined && Math.abs(v) > 1e-9 ? `, object-side RMS ${formatLength(spotRmsMm / Math.abs(v))}` : '';
+  return `, M = ${v.toPrecision(4)}${objectSide}`;
 }
 
 const signed = (lengthMm: number) => `${lengthMm < 0 ? '' : '+'}${formatLength(lengthMm)}`;
@@ -185,8 +190,8 @@ function sourceLines(setup: Setup, source: Source, trace: SetupTrace, gaussians:
   const offAxis = isOffAxis(setup, source);
   const screens = screensAfter(setup, source);
   const magnifications = screens.length ? memoMagnification(setup, source.id) : new Map<Id, Magnification[]>();
-  const magnificationAt = (screenId: Id, wavelengthNm: number) =>
-    formatMagnification(magnifications.get(screenId)?.find((m) => m.wavelengthNm === wavelengthNm));
+  const magnificationAt = (screenId: Id, wavelengthNm: number, spotRmsMm?: number) =>
+    formatMagnification(magnifications.get(screenId)?.find((m) => m.wavelengthNm === wavelengthNm), spotRmsMm);
   if (source.kind === 'gaussian') {
     const beams = gaussians.filter((g) => g.sourceId === source.id);
     const lines = beams.flatMap((g) => formatGaussian(g, labels));
@@ -211,7 +216,7 @@ function sourceLines(setup: Setup, source: Source, trace: SetupTrace, gaussians:
       return spot.centroidMm === null
         ? `${head} ${NO_RAYS}`
         : `${head} ${spot.heightsMm.length} rays, centroid y = ${mm(spot.centroidMm)}, RMS ${formatLength(spot.rmsMm ?? 0)}` +
-            magnificationAt(screen.id, spot.wavelengthNm);
+            magnificationAt(screen.id, spot.wavelengthNm, source.kind === 'point' ? (spot.rmsMm ?? 0) : undefined);
     }),
   );
   return [...focusLines, ...screenLines, ...(offAxis ? [OFF_AXIS_NOTE] : [])];

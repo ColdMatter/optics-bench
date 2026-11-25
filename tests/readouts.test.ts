@@ -171,4 +171,11 @@ describe('formatMagnification', () => {
     expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'no-rays' })).toBe(', M unavailable');
     expect(formatMagnification(undefined)).toBe('');
   });
+
+  test('with a spot RMS, the blur referred to the object as well', () => {
+    expect(formatMagnification({ wavelengthNm: 780, value: 28.707 }, 0.048)).toBe(', M = 28.71, object-side RMS 1.67 µm');
+    expect(formatMagnification({ wavelengthNm: 780, value: -2 }, 0.004)).toBe(', M = -2.000, object-side RMS 2.00 µm');
+    expect(formatMagnification({ wavelengthNm: 780, value: 0 }, 0.004)).toBe(', M = 0.000');
+    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'no-rays' }, 0.004)).toBe(', M unavailable');
+  });
 });
