@@ -88,7 +88,21 @@ describe('history', () => {
     expect(store.get().selectedId).toBeNull();
   });
 
-  test('subscribers hear changes until they unsubscribe', () => {
+  test('a selected measurement stays selected while it exists', () => {
+    const measured: Setup = {
+      ...initial,
+      sources: [{ kind: 'point', id: 'p', label: 'P', z: 0, y: 0, wavelengthsNm: [780], coneHalfAngleDeg: 5, rayCount: 3 }],
+      measurements: [{ id: 'm', a: 'p', b: 'sc' }],
+    };
+    const store = createStore(measured, null);
+    store.select('m');
+    store.apply(moveScreen(120), 'move');
+    expect(store.get().selectedId).toBe('m');
+    store.apply((s) => ({ ...s, measurements: [] }), 'remove');
+    expect(store.get().selectedId).toBeNull();
+  });
+
+    test('subscribers hear changes until they unsubscribe', () => {
     const store = createStore(initial, null);
     let calls = 0;
     const unsubscribe = store.subscribe(() => calls++);

@@ -420,6 +420,12 @@ th.col-num {
   width: max(96px, 16%);
 }
 
+th.col-gap {
+  width: 74px;
+  text-align: right !important;
+  padding-right: 10px !important;
+}
+
 th.col-part {
   padding-left: 9px !important;
 }

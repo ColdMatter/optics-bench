@@ -2,9 +2,19 @@ import { radiusAt } from '../../engine/gaussian';
 import { opticExtent } from '../../engine/optic';
 import type { GaussianTrace, Id, Optic, Setup, Source } from '../../engine/types';
 import { isTyping } from '../controls';
-import { findElement, isSource, kindNames, removeElement, updateElement } from '../elements';
+import {
+  addMeasurement,
+  findElement,
+  findMeasurement,
+  isSource,
+  kindNames,
+  measurementName,
+  removeElement,
+  removeMeasurement,
+  updateElement,
+} from '../elements';
 import type { AppState, Store } from '../store';
-import { apertureJawsPx, collimatedBarPx, lensPolygons, planeEnds } from './draw';
+import { apertureJawsPx, collimatedBarPx, lensPolygons, measurementMarks, planeEnds } from './draw';
 import { pan, pxPerMmY, pxPerMmZ, toScreen, toWorld, zoomAbout, type View } from './view';
 
 type Pt = [number, number];
@@ -80,6 +90,31 @@ export function hitTest(view: View, setup: Setup, px: number, py: number): Id | 
   return best;
 }
 
+const MEASURE_HIT_PX = 5;
+
+/** The measurement arrow at (px, py), and whether the point is on its label rather than its line. */
+export function hitMeasurement(view: View, setup: Setup, px: number, py: number): { id: Id; onLabel: boolean } | null {
+  let lineHit: Id | null = null;
+  for (const mark of measurementMarks(view, setup)) {
+    const { x, y, w, h } = mark.label;
+    if (px >= x && px <= x + w && py >= y && py <= y + h) return { id: mark.measurement.id, onLabel: true };
+    const [lo, hi] = [Math.min(mark.x1, mark.x2), Math.max(mark.x1, mark.x2)];
+    if (lineHit === null && px >= lo - MEASURE_HIT_PX && px <= hi + MEASURE_HIT_PX && Math.abs(py - mark.y) <= MEASURE_HIT_PX) {
+      lineHit = mark.measurement.id;
+    }
+  }
+  return lineHit === null ? null : { id: lineHit, onLabel: false };
+}
+
+/** What a click at (px, py) picks: a measurement's label, else an element, else a measurement's line. */
+export function pick(view: View, setup: Setup, px: number, py: number): { kind: 'element' | 'measurement'; id: Id } | null {
+  const measurement = hitMeasurement(view, setup, px, py);
+  if (measurement?.onLabel) return { kind: 'measurement', id: measurement.id };
+  const element = hitTest(view, setup, px, py);
+  if (element) return { kind: 'element', id: element };
+  return measurement && { kind: 'measurement', id: measurement.id };
+}
+
 export interface BenchHover {
   px: number;
   py: number;
@@ -134,6 +169,8 @@ interface Drag {
   startPy: number;
   start: Source | Optic;
   key: string;
+  /** Shift-click from this selected element: measure to `id` on release, unless the pointer moves first. */
+  measureFrom: Id | null;
 }
 interface Pan {
   kind: 'pan';
@@ -180,13 +217,21 @@ export function attachBenchInteraction(
   canvas.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
     const [px, py] = local(e);
-    const id = hitTest(getView(), store.get().setup, px, py);
+    const { setup, selectedId } = store.get();
+    const picked = pick(getView(), setup, px, py);
+    if (picked?.kind === 'measurement') {
+      store.select(picked.id);
+      e.preventDefault();
+      return;
+    }
+    const id = picked?.id ?? null;
     canvas.setPointerCapture?.(e.pointerId);
     if (id) {
-      store.select(id);
-      const start = findElement(store.get().setup, id)!;
+      const measureFrom = e.shiftKey && !e.altKey && selectedId !== id && findElement(setup, selectedId) ? selectedId : null;
+      if (!measureFrom) store.select(id);
+      const start = findElement(setup, id)!;
       const axis = e.altKey ? 'y' : 'z';
-      gesture = { kind: 'element', id, axis, startPx: px, startPy: py, start, key: `drag:${id}:${++gestureCount}` };
+      gesture = { kind: 'element', id, axis, startPx: px, startPy: py, start, key: `drag:${id}:${++gestureCount}`, measureFrom };
       canvas.style.cursor = axis === 'y' && heightOf(start) === null ? 'not-allowed' : 'grabbing';
     } else {
       gesture = { kind: 'pan', lastPx: px, lastPy: py, downPx: px, downPy: py, moved: false };
@@ -211,6 +256,12 @@ export function attachBenchInteraction(
       const drag = gesture;
       const current = findElement(store.get().setup, drag.id);
       if (!current) return;
+      if (drag.measureFrom) {
+        // Shift-drag still moves (snapping to whole mm) once the pointer leaves the click slop.
+        if (Math.hypot(px - drag.startPx, py - drag.startPy) <= CLICK_SLOP_PX) return;
+        drag.measureFrom = null;
+        store.select(drag.id);
+      }
       let value: number;
       if (drag.axis === 'z') {
         const raw = drag.start.z + (px - drag.startPx) / pxPerMmZ(view);
@@ -231,20 +282,27 @@ export function attachBenchInteraction(
       reportHover(px, py, drag.id);
       return;
     }
-    const id = hitTest(view, store.get().setup, px, py);
-    canvas.style.cursor = id ? 'grab' : '';
-    reportHover(px, py, id);
+    const picked = pick(view, store.get().setup, px, py);
+    canvas.style.cursor = picked?.kind === 'measurement' ? 'pointer' : picked ? 'grab' : '';
+    reportHover(px, py, picked?.kind === 'element' ? picked.id : null);
   });
 
   const end = (e: PointerEvent) => {
     if (!gesture) return;
     const [px, py] = local(e);
     if (gesture.kind === 'pan' && !gesture.moved && e.type === 'pointerup') store.select(null);
+    if (gesture.kind === 'element' && gesture.measureFrom && e.type === 'pointerup') {
+      const [from, to] = [gesture.measureFrom, gesture.id];
+      store.apply(
+        (s) => addMeasurement(s, from, to),
+        `Measure ${measurementName(store.get().setup, { id: '', a: from, b: to })}`,
+      );
+    }
     gesture = null;
     canvas.releasePointerCapture?.(e.pointerId);
-    const id = hitTest(getView(), store.get().setup, px, py);
-    canvas.style.cursor = id ? 'grab' : '';
-    reportHover(px, py, id);
+    const picked = pick(getView(), store.get().setup, px, py);
+    canvas.style.cursor = picked?.kind === 'measurement' ? 'pointer' : picked ? 'grab' : '';
+    reportHover(px, py, picked?.kind === 'element' ? picked.id : null);
   };
   canvas.addEventListener('pointerup', end);
   canvas.addEventListener('pointercancel', end);
@@ -267,13 +325,19 @@ export function attachBenchInteraction(
 
   canvas.addEventListener('dblclick', (e) => {
     const [px, py] = local(e);
-    if (!hitTest(getView(), store.get().setup, px, py)) hooks.onFit?.();
+    if (!pick(getView(), store.get().setup, px, py)) hooks.onFit?.();
   });
 
   window.addEventListener('keydown', (e) => {
     if ((e.key !== 'Delete' && e.key !== 'Backspace') || e.ctrlKey || e.metaKey || e.altKey) return;
     if (isTyping(e.target) || document.querySelector('dialog[open]')) return;
     const { setup, selectedId } = store.get();
+    const measurement = findMeasurement(setup, selectedId);
+    if (measurement) {
+      e.preventDefault();
+      store.apply((s) => removeMeasurement(s, measurement.id), `Remove measurement ${measurementName(setup, measurement)}`);
+      return;
+    }
     const item = findElement(setup, selectedId);
     if (!item) return;
     e.preventDefault();

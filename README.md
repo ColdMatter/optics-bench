@@ -38,12 +38,14 @@ Build it once (below), then open `dist/index.html` in any modern browser, by dou
 | Drag an element | Move it along z (hold Shift as well to snap to whole mm) |
 | Alt + drag an element | Move its y / decentre |
 | Click | Select (empty space clears the selection) |
+| Shift + click another element | Add a dimension arrow from the selected element to it, labelled with the distance in z between their `z` values (vertex to vertex for lenses). Arrows are saved with the setup and follow the elements as they move |
+| Click an arrow or its label, then Delete | Remove that arrow (deleting an element also removes its arrows) |
 | Double-click empty space, or **Fit** | Fit everything in view |
 | Hover | Shows z, y and w(z) of each Gaussian beam at the cursor |
-| Delete | Remove the selected element |
+| Delete | Remove the selected element or arrow |
 | Ctrl+Z / Ctrl+Shift+Z or Ctrl+Y | Undo / redo (⌘ on a Mac) |
 
-Every value can also be typed into the elements table or the properties panel. Editing in one place updates the others.
+Every value can also be typed into the elements table or the properties panel. Editing in one place updates the others. The table's **Δz** column gives each element's distance in z from the row above it.
 
 ## Importing a lens
 
@@ -113,11 +115,11 @@ The shared catalogue has no room for glass substitutes. A glass you replaced wit
 
 ## Save file format
 
-A setup is a JSON file written by `serialiseSetup` and read by `parseSetup` (`src/engine/io.ts`). Lengths are in mm, wavelengths in nm and angles in degrees. Every number must be finite. `version` is `1`; a file with a higher version is rejected as made by a newer version. Errors name the offending path, e.g. `optics[2].focalLengthMm: expected a non-zero number`. Ids must be unique across `sources` and `optics` together.
+A setup is a JSON file written by `serialiseSetup` and read by `parseSetup` (`src/engine/io.ts`). Lengths are in mm, wavelengths in nm and angles in degrees. Every number must be finite. `version` is `1`, or `2` when the file has `measurements`, so that older builds refuse it rather than silently drop the arrows; a file with a higher version is rejected as made by a newer version. Errors name the offending path, e.g. `optics[2].focalLengthMm: expected a non-zero number`. Ids must be unique across `sources`, `optics` and `measurements` together.
 
 | Field | Contents |
 | --- | --- |
-| `version` | `1` |
+| `version` | `1`, or `2` with `measurements` |
 | `sources[]` | `kind` (`point`, `collimated`, `gaussian`), `id`, `label`, `z`, `y` (mm), `wavelengthsNm` (non-empty, each > 0). `point`: `coneHalfAngleDeg` (`"fill"` or 0 to 90 exclusive), `rayCount` (integer ≥ 1). `collimated`: `widthMm` (≥ 0), `angleDeg`, `rayCount`. `gaussian`: `angleDeg`, `waistRadiusMm` (> 0), `waistZ` (mm), `m2` (≥ 1). |
 | `optics[]` | Common: `kind`, `id`, `label`, `z` (mm; first vertex of a lens). Lens, ideal lens and SLM also have `decentreMm` and `tiltDeg` (\|tilt\| < 90). |
 | `optics[]` lens | `kind: "lens"`, `flipped` (boolean), `prescription`: `partNumber` (non-empty), `vendor`, `source` (`zmx` or `drawing`), `sourceRef`, `surfaces[]` (at least 2), and optionally `designWavelengthNm` (> 0), the primary wavelength of its Zemax file. |
@@ -126,6 +128,7 @@ A setup is a JSON file written by `serialiseSetup` and read by `parseSetup` (`sr
 | `optics[]` SLM | `kind: "slm"`, `apertureMm`, `pixelPitchUm`, `designWavelengthNm` (all > 0), `phase[]` of terms: `fresnel` (`focalLengthMm`, non-zero), `blaze` (`angleDeg`), `polynomial` (`coefficientsRad`, Σ a_k (y/R)^k for k = 1…, R = aperture/2), `table` (`yMm` strictly increasing, `phaseRad` of the same length, at least 2 points). |
 | `optics[]` aperture | `kind: "aperture"`, `decentreMm`, `diameterMm` (> 0). |
 | `optics[]` screen | `kind: "screen"` (no further fields). |
+| `measurements[]` | Optional. Dimension arrows on the bench: `id`, `a` and `b` (ids of two different sources or optics). The distance is \|z<sub>b</sub> − z<sub>a</sub>\|, so it isn't stored. |
 | `glasses` | Map from glass name to `{ name, formula (1, 2, 3 or "constant" — refractiveindex.info formula number), coefficients (non-empty, wavelengths in µm), rangeUm: [min, max] }`. Lenses refer to these, or to the bundled glasses, by name. |
 
 Example:

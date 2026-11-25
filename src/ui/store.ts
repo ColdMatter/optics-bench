@@ -3,6 +3,7 @@ import type { Id, Setup } from '../engine/types';
 
 export interface AppState {
   setup: Setup;
+  /** A source, an optic or a measurement arrow. */
   selectedId: Id | null;
 }
 
@@ -78,7 +79,7 @@ function autosave(storage: Storage | null, setup: Setup): void {
 }
 
 function hasElement(setup: Setup, id: Id): boolean {
-  return setup.sources.some((s) => s.id === id) || setup.optics.some((o) => o.id === id);
+  return setup.sources.some((s) => s.id === id) || setup.optics.some((o) => o.id === id) || !!setup.measurements?.some((m) => m.id === id);
 }
 
 interface Step {

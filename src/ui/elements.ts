@@ -3,7 +3,7 @@ import lenses from '../data/lenses.json';
 import thorlabsCatalogue from '../data/thorlabs-catalogue.json';
 import { newId } from '../engine/io';
 import { opticExtent } from '../engine/optic';
-import type { GlassData, Id, LensPrescription, Optic, Setup, Source, TraceWarning } from '../engine/types';
+import type { GlassData, Id, LensPrescription, Measurement, Optic, Setup, Source, TraceWarning } from '../engine/types';
 import type { AppState, Store } from './store';
 
 /**
@@ -130,12 +130,46 @@ export function insertElement(store: Store, item: Source | Optic, glasses: Recor
   store.select(item.id);
 }
 
+/** Removes the element and any measurement arrows to or from it. */
 export function removeElement(setup: Setup, id: Id): Setup {
-  return {
+  const next: Setup = {
     ...setup,
     sources: setup.sources.filter((s) => s.id !== id),
     optics: setup.optics.filter((o) => o.id !== id),
   };
+  if (!setup.measurements?.some((m) => m.a === id || m.b === id)) return next;
+  return withMeasurements(next, setup.measurements.filter((m) => m.a !== id && m.b !== id));
+}
+
+function withMeasurements(setup: Setup, measurements: Measurement[]): Setup {
+  const { measurements: _, ...rest } = setup;
+  return measurements.length ? { ...rest, measurements } : rest;
+}
+
+export function findMeasurement(setup: Setup, id: Id | null): Measurement | undefined {
+  return id === null ? undefined : setup.measurements?.find((m) => m.id === id);
+}
+
+/** Adds an arrow from a to b; returns the setup unchanged if a and b are the same, missing, or already measured. */
+export function addMeasurement(setup: Setup, a: Id, b: Id): Setup {
+  if (a === b || !findElement(setup, a) || !findElement(setup, b)) return setup;
+  const existing = setup.measurements ?? [];
+  if (existing.some((m) => (m.a === a && m.b === b) || (m.a === b && m.b === a))) return setup;
+  return withMeasurements(setup, [...existing, { id: newId(), a, b }]);
+}
+
+export function removeMeasurement(setup: Setup, id: Id): Setup {
+  if (!findMeasurement(setup, id)) return setup;
+  return withMeasurements(setup, setup.measurements!.filter((m) => m.id !== id));
+}
+
+/** "L1 – L2", for undo labels. */
+export function measurementName(setup: Setup, m: Measurement): string {
+  const name = (id: Id) => {
+    const item = findElement(setup, id);
+    return item ? item.label || kindNames[item.kind] : id;
+  };
+  return `${name(m.a)} – ${name(m.b)}`;
 }
 
 export function updateElement(setup: Setup, id: Id, update: (item: Source | Optic) => Source | Optic): Setup {

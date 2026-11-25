@@ -109,11 +109,21 @@ export interface Screen {
 }
 export type Optic = CatalogueLens | IdealLens | Slm | Aperture | Screen;
 
+/** A dimension arrow between two elements on the bench, labelled with |Δz| between their `z` values. */
+export interface Measurement {
+  id: Id;
+  a: Id;
+  b: Id;
+}
+
 export interface Setup {
+  /** In memory always 1; `serialiseSetup` writes 2 when there are measurements, so older builds refuse the file rather than drop them. */
   version: 1;
   sources: Source[];
   optics: Optic[];
   glasses: Record<string, GlassData>;
+  /** Absent or empty when there are none. */
+  measurements?: Measurement[];
 }
 
 export interface RayPath {

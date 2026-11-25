@@ -21,6 +21,7 @@ const shortKind: Record<Item['kind'], string> = {
 interface Row {
   tr: HTMLTableRowElement;
   marker: HTMLElement;
+  gap: HTMLElement;
   item: Item;
   refreshers: (() => void)[];
 }
@@ -51,6 +52,7 @@ export function createElementsTable(container: HTMLElement, store: Store): Eleme
         h('th', { class: 'col-type' }, 'Type'),
         h('th', { class: 'col-label' }, 'Label'),
         h('th', { class: 'col-num' }, 'z (mm)'),
+        h('th', { class: 'col-gap', title: 'Distance in z from the element in the row above' }, 'Δz (mm)'),
         h('th', { class: 'col-part' }, 'Part / f'),
         h('th', { class: 'col-num' }, 'y / decentre (mm)'),
         h('th', { class: 'col-remove', 'aria-label': 'Remove' }),
@@ -85,7 +87,8 @@ export function createElementsTable(container: HTMLElement, store: Store): Eleme
   function createRow(item: Item): Row {
     const tr = h('tr', { 'data-id': item.id });
     const marker = h('span', { class: 'warn-mark', role: 'img' }, '⚠');
-    const row: Row = { tr, marker, item, refreshers: [] };
+    const gap = h('td', { class: 'num muted gap' });
+    const row: Row = { tr, marker, gap, item, refreshers: [] };
 
     const label = textControl({
       label: 'Label',
@@ -117,6 +120,7 @@ export function createElementsTable(container: HTMLElement, store: Store): Eleme
       h('td', { class: 'type' }, shortKind[item.kind]),
       h('td', {}, label.input, label.message),
       numberCell(row, 'z'),
+      gap,
       part,
       numberCell(row, isSource(item) ? 'y' : 'decentreMm'),
       h('td', { class: 'col-remove' }, remove),
@@ -132,6 +136,7 @@ export function createElementsTable(container: HTMLElement, store: Store): Eleme
       const ordered: Item[] = [...setup.sources, ...sortedByAxialStart(setup.optics)];
       const seen = new Set<Id>();
       let previous: HTMLTableRowElement | null = null;
+      let previousZ: number | null = null;
       for (const item of ordered) {
         seen.add(item.id);
         let row = rows.get(item.id);
@@ -143,6 +148,8 @@ export function createElementsTable(container: HTMLElement, store: Store): Eleme
         const expectedNext: ChildNode | null = previous ? previous.nextSibling : body.firstChild;
         if (expectedNext !== row.tr) body.insertBefore(row.tr, expectedNext);
         previous = row.tr;
+        row.gap.textContent = previousZ === null ? '' : formatShort(item.z - previousZ);
+        previousZ = item.z;
 
         for (const refresh of row.refreshers) refresh();
         const messages = warnings.get(item.id) ?? [];

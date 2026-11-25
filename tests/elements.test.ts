@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { insertElement, newOptic, newSource, removeElement } from '../src/ui/elements';
+import { addMeasurement, insertElement, newOptic, newSource, removeElement, removeMeasurement } from '../src/ui/elements';
 import { createStore } from '../src/ui/store';
 import type { Setup } from '../src/engine/types';
 
@@ -51,5 +51,29 @@ describe('adding elements', () => {
     store.undo();
     store.undo();
     expect(store.get().setup).toEqual(base());
+  });
+});
+
+describe('measurements', () => {
+  test('a pair is measured once, whichever way round', () => {
+    const once = addMeasurement(base(), 'a', 'b');
+    expect(once.measurements).toEqual([{ id: expect.any(String), a: 'a', b: 'b' }]);
+    expect(addMeasurement(once, 'b', 'a')).toBe(once);
+    expect(addMeasurement(once, 'a', 'a')).toBe(once);
+    expect(addMeasurement(once, 'a', 'missing')).toBe(once);
+  });
+
+  test('removing an element removes its arrows, and undo brings both back', () => {
+    const store = createStore(addMeasurement(addMeasurement(base(), 's', 'a'), 'a', 'b'), null);
+    const before = store.get().setup;
+    store.apply((s) => removeElement(s, 'b'), 'remove');
+    expect(store.get().setup.measurements?.map((m) => [m.a, m.b])).toEqual([['s', 'a']]);
+    store.undo();
+    expect(store.get().setup).toBe(before);
+  });
+
+  test('removing the last arrow drops the field', () => {
+    const measured = addMeasurement(base(), 'a', 'b');
+    expect(removeMeasurement(measured, measured.measurements![0]!.id)).not.toHaveProperty('measurements');
   });
 });

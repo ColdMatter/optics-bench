@@ -71,9 +71,39 @@ describe('round trip', () => {
   });
 });
 
+describe('measurements', () => {
+  const measured = (): Setup => ({ ...fullSetup(), measurements: [{ id: 'm1', a: 'o1', b: 's2' }] });
+
+  test('round trip, written as version 2', () => {
+    const text = serialiseSetup(measured());
+    expect(JSON.parse(text).version).toBe(2);
+    expect(parseSetup(text)).toEqual(measured());
+  });
+
+  test('a setup without them is still written as version 1, with no measurements field', () => {
+    const parsed = JSON.parse(serialiseSetup({ ...fullSetup(), measurements: [] }));
+    expect(parsed.version).toBe(1);
+    expect(parsed).not.toHaveProperty('measurements');
+  });
+
+  test('a version 2 file without them reads', () => {
+    expect(parseSetup(mutated((s) => (s.version = 2)))).toEqual(fullSetup());
+  });
+});
+
 describe('parseSetup rejects', () => {
   test('invalid JSON', () => expect(rejection('{nope')).toMatch(/not valid JSON/));
-  test('a newer version', () => expect(rejection(mutated((s) => (s.version = 2)))).toMatch(/version.*newer version/));
+  test('a newer version', () => expect(rejection(mutated((s) => (s.version = 3)))).toMatch(/version.*newer version/));
+  test('a measurement to a missing element', () =>
+    expect(rejection(mutated((s) => (s.measurements = [{ id: 'm1', a: 'o1', b: 'nope' }])))).toBe(
+      'measurements[0].b: no source or optic has id "nope"',
+    ));
+  test('a measurement from an element to itself', () =>
+    expect(rejection(mutated((s) => (s.measurements = [{ id: 'm1', a: 'o1', b: 'o1' }])))).toMatch(/^measurements\[0\]\.b: /));
+  test('a measurement id that clashes with an element', () =>
+    expect(rejection(mutated((s) => (s.measurements = [{ id: 'o2', a: 'o1', b: 'o3' }])))).toMatch(
+      /^measurements\[0\]\.id: duplicate id "o2"/,
+    ));
   test('missing sources', () => expect(rejection(mutated((s) => delete s.sources))).toMatch(/^sources: /));
   test('unknown optic kind', () =>
     expect(rejection(mutated((s) => (s.optics[1].kind = 'mirror')))).toMatch(/^optics\[1\]\.kind: .*mirror/));

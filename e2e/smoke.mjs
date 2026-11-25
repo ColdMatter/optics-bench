@@ -108,6 +108,49 @@ await step('dragging the first achromat moves it, and Ctrl+Z puts it back', asyn
   assert.equal(await zOf('L3'), startZ);
 });
 
+await step('Shift-click measures between two elements; the arrow follows a drag and Delete removes it', async () => {
+  const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('optics-sim/setup/v1')));
+  const gapOf = (label) =>
+    page.$$eval('table.elements tbody tr', (rows, wanted) => rows.find((tr) => tr.querySelector('input')?.value === wanted)?.querySelector('td.gap')?.textContent, label);
+  assert.equal(await gapOf('L2'), '150');
+  const at = (z) => toPx(z, 0).map((v, i) => v + (i === 0 ? box.x : box.y));
+  await page.mouse.click(...at(-250));
+  await page.keyboard.down('Shift');
+  await page.mouse.click(...at(-100));
+  await page.keyboard.up('Shift');
+  await page.waitForTimeout(100);
+  let setup = await saved();
+  assert.equal(setup.measurements?.length, 1, 'no measurement was added');
+  const byId = new Map(setup.optics.map((o) => [o.id, o.label]));
+  const [m] = setup.measurements;
+  assert.deepEqual([byId.get(m.a), byId.get(m.b)], ['L1', 'L2']);
+
+  const [lx, ly] = at(-100);
+  await page.mouse.move(lx, ly);
+  await page.mouse.down();
+  for (let dx = 10; dx <= 40; dx += 10) await page.mouse.move(lx + dx, ly);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  setup = await saved();
+  assert.equal(setup.measurements?.length, 1);
+  assert.ok(Number(await gapOf('L2')) > 150, 'L2 did not move');
+
+  // The label sits centred above the first lane's line (draw.ts: MEASURE_TOP_PX 44, label 15 px tall, 2 px above).
+  const l2 = setup.optics.find((o) => o.label === 'L2');
+  const midX = (toPx(-250, 0)[0] + toPx(l2.z, 0)[0]) / 2;
+  await page.mouse.click(box.x + midX, box.y + 35);
+  await page.keyboard.press('Delete');
+  await page.waitForTimeout(100);
+  setup = await saved();
+  assert.equal(setup.measurements, undefined, 'the measurement was not removed');
+  assert.equal(setup.optics.length, 5, 'Delete removed an element');
+  for (let i = 0; i < 3; i++) await page.keyboard.press('Control+z');
+  await page.waitForTimeout(100);
+  setup = await saved();
+  assert.equal(setup.measurements, undefined);
+  assert.equal(setup.optics.find((o) => o.label === 'L2').z, -100);
+});
+
 await step('a saved setup opens again after a reload', async () => {
   const z = await zInput('L4');
   await z.fill('150');

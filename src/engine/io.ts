@@ -3,6 +3,7 @@ import type {
   GlassData,
   Id,
   LensPrescription,
+  Measurement,
   Optic,
   PhaseTerm,
   PrescriptionSurface,
@@ -21,8 +22,13 @@ export function newId(): Id {
   return crypto.randomUUID().slice(0, 8);
 }
 
+/** Highest file version `parseSetup` reads. Version 2 adds `measurements`; a setup without any is still written as 1. */
+export const MAX_FILE_VERSION = 2;
+
 export function serialiseSetup(setup: Setup): string {
-  return JSON.stringify(setup, null, 2);
+  const { measurements, ...rest } = setup;
+  const out = measurements?.length ? { ...rest, version: 2, measurements } : { ...rest, version: 1 };
+  return JSON.stringify(out, null, 2);
 }
 
 type Obj = Record<string, unknown>;
@@ -241,6 +247,19 @@ function readGlass(v: unknown, path: string): GlassData {
   };
 }
 
+function readMeasurement(v: unknown, path: string, elementIds: Set<Id>): Measurement {
+  const o = obj(v, path);
+  const end = (key: 'a' | 'b') => {
+    const id = nonEmptyStr(o[key], at(path, key));
+    if (!elementIds.has(id)) fail(at(path, key), `no source or optic has id "${id}"`);
+    return id;
+  };
+  const a = end('a');
+  const b = end('b');
+  if (a === b) fail(at(path, 'b'), 'expected a different element from a');
+  return { id: nonEmptyStr(o.id, at(path, 'id')), a, b };
+}
+
 export function parseSetup(text: string): Setup {
   let doc: unknown;
   try {
@@ -249,10 +268,10 @@ export function parseSetup(text: string): Setup {
     throw new SetupFormatError(`not valid JSON: ${(e as Error).message}`);
   }
   const root = obj(doc, '');
-  if (typeof root.version === 'number' && root.version > 1) {
+  if (typeof root.version === 'number' && root.version > MAX_FILE_VERSION) {
     throw new SetupFormatError(`version: ${root.version} was made by a newer version of this simulator`);
   }
-  if (root.version !== 1) fail('version', 'expected 1');
+  if (root.version !== 1 && root.version !== 2) fail('version', 'expected 1 or 2');
   const sources = arr(root.sources, 'sources').map((s, i) => readSource(s, `sources[${i}]`));
   const optics = arr(root.optics, 'optics').map((o, i) => readOptic(o, `optics[${i}]`));
   const glassObj = obj(root.glasses, 'glasses');
@@ -266,5 +285,8 @@ export function parseSetup(text: string): Setup {
   };
   sources.forEach((s, i) => claim(s.id, `sources[${i}].id`));
   optics.forEach((o, i) => claim(o.id, `optics[${i}].id`));
-  return { version: 1, sources, optics, glasses };
+  const elementIds = new Set(seen);
+  const measurements = root.measurements === undefined ? [] : arr(root.measurements, 'measurements').map((m, i) => readMeasurement(m, `measurements[${i}]`, elementIds));
+  measurements.forEach((m, i) => claim(m.id, `measurements[${i}].id`));
+  return measurements.length ? { version: 1, sources, optics, glasses, measurements } : { version: 1, sources, optics, glasses };
 }

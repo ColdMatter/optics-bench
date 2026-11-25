@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
-import { hitTest, hoverLines } from '../src/ui/bench/interact';
+import { hitTest, hoverLines, pick } from '../src/ui/bench/interact';
+import { measurementMarks } from '../src/ui/bench/draw';
 import { traceGaussians } from '../src/engine/gaussian';
 import { fitAll, pan, toScreen, toWorld, zoomAbout, type View } from '../src/ui/bench/view';
 import { catalogue } from '../src/ui/elements';
@@ -112,6 +113,52 @@ describe('hitTest', () => {
     expect(hitTest(wide, setup, sx + 3, sy - 2)).toBe('s');
     const [scrX] = toScreen(wide, 300, 0);
     expect(hitTest(wide, setup, scrX + 4, 30)).toBe('scr');
+  });
+});
+
+describe('measurement arrows', () => {
+  const wide: View = { zMin: -20, zMax: 320, yMin: -20, yMax: 20, widthPx: 1000, heightPx: 400 };
+  const measured: Setup = {
+    ...setup,
+    measurements: [
+      { id: 'm1', a: 's', b: 'lens' },
+      { id: 'm2', a: 'lens', b: 'scr' },
+      { id: 'm3', a: 'scr', b: 's' },
+    ],
+  };
+  const byId = (s: Setup) => new Map(measurementMarks(wide, s).map((m) => [m.measurement.id, m]));
+
+  test('label |Δz| between the elements, from their z values', () => {
+    const marks = byId(measured);
+    expect([...marks.values()].map((m) => [m.measurement.id, m.text])).toEqual([
+      ['m1', '97 mm'],
+      ['m3', '300 mm'],
+      ['m2', '203 mm'],
+    ]);
+    expect(marks.get('m1')!.x1).toBeCloseTo(toScreen(wide, 0, 0)[0], 9);
+    expect(marks.get('m1')!.x2).toBeCloseTo(toScreen(wide, 97, 0)[0], 9);
+  });
+
+  test('follow the elements when they move', () => {
+    const moved: Setup = { ...measured, optics: measured.optics.map((o) => (o.id === 'lens' ? { ...o, z: 120.5 } : o)) };
+    const marks = byId(moved);
+    expect(marks.get('m1')!.text).toBe('120.5 mm');
+    expect(marks.get('m2')!.text).toBe('179.5 mm');
+  });
+
+  test('a chain shares a lane; an overlapping arrow takes the next one', () => {
+    const marks = byId(measured);
+    expect(marks.get('m1')!.y).toBe(marks.get('m2')!.y);
+    expect(marks.get('m3')!.y).toBeGreaterThan(marks.get('m1')!.y);
+  });
+
+  test('a click on a label picks the arrow, even over an element; elsewhere the element wins', () => {
+    const m3 = byId(measured).get('m3')!;
+    const lensX = toScreen(wide, 97, 0)[0];
+    expect(pick(wide, measured, m3.label.x + 2, m3.label.y + 2)).toEqual({ kind: 'measurement', id: 'm3' });
+    expect(pick(wide, measured, (m3.x1 + m3.x2) / 2 + 60, m3.y + 1)).toEqual({ kind: 'measurement', id: 'm3' });
+    expect(pick(wide, measured, toScreen(wide, 300, 0)[0] + 2, 300)).toEqual({ kind: 'element', id: 'scr' });
+    expect(pick(wide, setup, lensX, 30)).toBeNull();
   });
 });
 

@@ -3,7 +3,9 @@ import { flipPrescription, fromLocal, lensThickness, type Placement } from '../.
 import { opticExtent } from '../../engine/optic';
 import { slmPhaseGradient } from '../../engine/slm';
 import { sag } from '../../engine/surface';
-import type { CatalogueLens, GaussianTrace, Id, Optic, Setup, SetupTrace, Slm, Source } from '../../engine/types';
+import type { CatalogueLens, GaussianTrace, Id, Measurement, Optic, Setup, SetupTrace, Slm, Source } from '../../engine/types';
+import { formatShort } from '../controls';
+import { findElement } from '../elements';
 import { isInfrared, wavelengthColour } from '../colours';
 import type { AppState } from '../store';
 import { opticHalfAperture, pxPerMmY, pxPerMmZ, toScreen, type View } from './view';
@@ -395,7 +397,7 @@ function drawOptic(ctx: CanvasRenderingContext2D, view: View, o: Optic, theme: T
 }
 
 /** Screen x and the top of an element, for its label. */
-function labelAnchor(view: View, item: Source | Optic): Pt {
+export function labelAnchor(view: View, item: Source | Optic): Pt {
   if (item.kind === 'point' || item.kind === 'gaussian' || item.kind === 'collimated') {
     const top = item.kind === 'collimated' ? Math.min(...collimatedBarPx(view, item).map((p) => p[1])) : toScreen(view, item.z, item.y)[1] - 6;
     return [toScreen(view, item.z, item.y)[0], top];
@@ -423,6 +425,111 @@ function drawLabel(ctx: CanvasRenderingContext2D, view: View, item: Source | Opt
   ctx.strokeText(item.label, x, y);
   ctx.fillStyle = emphasis ? theme.accent : theme.text;
   ctx.fillText(item.label, x, y);
+}
+
+const MEASURE_TOP_PX = 44;
+const MEASURE_LANE_PX = 24;
+const MEASURE_CHAR_PX = 6.3;
+const MEASURE_LABEL_H = 15;
+
+/** Where a measurement arrow is drawn, in screen px. The label box sits just above the line, centred. */
+export interface MeasurementMark {
+  measurement: Measurement;
+  x1: number;
+  x2: number;
+  y: number;
+  text: string;
+  label: { x: number; y: number; w: number; h: number };
+  /** Bottom of each extension line (at x1, x2), or null when the element already reaches the arrow. */
+  extensionTo: [number | null, number | null];
+}
+
+/**
+ * Arrows go in lanes along the top of the bench, in screen space so they stay readable at any zoom.
+ * Each takes the first lane where it (with its label) doesn't overlap an arrow already placed.
+ */
+export function measurementMarks(view: View, setup: Setup): MeasurementMark[] {
+  const placed: MeasurementMark[] = [];
+  const lanes: number[] = [];
+  const pending = (setup.measurements ?? []).flatMap((m) => {
+    const a = findElement(setup, m.a);
+    const b = findElement(setup, m.b);
+    if (!a || !b) return [];
+    const [xa, xb] = [toScreen(view, a.z, 0)[0], toScreen(view, b.z, 0)[0]];
+    const text = `${formatShort(Math.abs(b.z - a.z))} mm`;
+    const w = text.length * MEASURE_CHAR_PX + 8;
+    const mid = (xa + xb) / 2;
+    const left = Math.min(xa, xb, mid - w / 2);
+    const right = Math.max(xa, xb, mid + w / 2);
+    return [{ m, a, b, xa, xb, text, w, mid, left, right }];
+  });
+  pending.sort((p, q) => p.left - q.left || p.right - q.right);
+  for (const p of pending) {
+    // Arrows that only share an end (a chain of gaps) can share a lane.
+    let lane = lanes.findIndex((end) => end <= p.left + 0.5);
+    if (lane < 0) lane = lanes.push(p.right) - 1;
+    else lanes[lane] = p.right;
+    const y = MEASURE_TOP_PX + lane * MEASURE_LANE_PX + 0.5;
+    const extension = (item: Source | Optic) => {
+      const bottom = labelAnchor(view, item)[1] - 20;
+      return bottom > y + 3 ? bottom : null;
+    };
+    placed.push({
+      measurement: p.m,
+      x1: p.xa,
+      x2: p.xb,
+      y,
+      text: p.text,
+      label: { x: p.mid - p.w / 2, y: y - MEASURE_LABEL_H - 2, w: p.w, h: MEASURE_LABEL_H },
+      extensionTo: [extension(p.a), extension(p.b)],
+    });
+  }
+  return placed;
+}
+
+function drawMeasurements(ctx: CanvasRenderingContext2D, marks: MeasurementMark[], theme: Theme, selectedId: Id | null) {
+  for (const mark of marks) {
+    const selected = mark.measurement.id === selectedId;
+    const colour = selected ? theme.accent : theme.text;
+    const [lo, hi] = [Math.min(mark.x1, mark.x2), Math.max(mark.x1, mark.x2)];
+
+    ctx.beginPath();
+    mark.extensionTo.forEach((bottom, i) => {
+      if (bottom === null) return;
+      const x = Math.round(i === 0 ? mark.x1 : mark.x2) + 0.5;
+      ctx.moveTo(x, mark.y - 4);
+      ctx.lineTo(x, bottom);
+    });
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = theme.muted;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Heads point outwards from inside the span, or inwards from outside it when the span is too short.
+    const inside = hi - lo >= 2 * ARROW_PX + 4;
+    ctx.beginPath();
+    ctx.moveTo(inside ? lo : lo - 2 * ARROW_PX, mark.y);
+    ctx.lineTo(inside ? hi : hi + 2 * ARROW_PX, mark.y);
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = selected ? 2 : 1.25;
+    ctx.stroke();
+    ctx.fillStyle = colour;
+    arrowHead(ctx, [lo, mark.y], inside ? -1 : 1, 0);
+    arrowHead(ctx, [hi, mark.y], inside ? 1 : -1, 0);
+    ctx.fill();
+
+    const { x, y, w, h } = mark.label;
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = theme.panel;
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = 1;
+    ctx.font = selected ? `600 ${FONT}` : FONT;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = colour;
+    ctx.fillText(mark.text, x + w / 2, y + h / 2 + 0.5);
+  }
 }
 
 function drawRays(ctx: CanvasRenderingContext2D, view: View, trace: SetupTrace) {
@@ -639,6 +746,7 @@ export function drawBench(
   for (const o of setup.optics) drawOptic(ctx, view, o, theme, strokeFor(o.id));
   if (opts.showRays) drawRays(ctx, view, trace);
   for (const s of setup.sources) drawSource(ctx, view, s, theme.text);
+  drawMeasurements(ctx, measurementMarks(view, setup), theme, selectedId);
   for (const item of items) drawLabel(ctx, view, item, theme, item.id === selectedId);
   drawLegend(ctx, view, setup, theme);
   drawScaleBars(ctx, view, theme);
