@@ -1,1 +1,31 @@
-[]
+[
+ {
+  "designWavelengthNm": 780,
+  "partNumber": "AHL15-12",
+  "vendor": "asphericon",
+  "source": "zmx",
+  "sourceRef": "AHL15-12.zmx from asphericon (catalog lens file, 2016); covers every grade and coating, e.g. AHL15-12-P-U",
+  "surfaces": [
+   {
+    "curvature": 0.1072961373390558,
+    "conic": -1,
+    "asphere": [
+     0.0000575,
+     -1.89e-8,
+     -8.38e-10
+    ],
+    "semiDiameterMm": 7.5,
+    "thicknessToNextMm": 5.28,
+    "glassAfter": "S-LAH64"
+   },
+   {
+    "curvature": 0,
+    "conic": 0,
+    "asphere": [],
+    "semiDiameterMm": 7.5,
+    "thicknessToNextMm": 0,
+    "glassAfter": null
+   }
+  ]
+ }
+]
