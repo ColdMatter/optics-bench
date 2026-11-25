@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { refractiveIndex, makeGlassLookup } from '../src/engine/glass';
-import { focusPerWavelength, focusShiftCurve, screenMagnifications, screenStats } from '../src/engine/focus';
+import { focusPerWavelength, focusShiftCurve, lensFocalDistances, screenMagnifications, screenStats } from '../src/engine/focus';
+import { parseSetup } from '../src/engine/io';
+import rbImaging from '../examples/tweezer-imaging/rb-780nm-imaging.json?raw';
 import { traceSetup } from '../src/engine/trace';
 import type {
   Aperture,
@@ -176,5 +178,41 @@ describe('screenMagnifications', () => {
     expect([...result.keys()]).toEqual(['down']);
     expect(result.get('down')!.map((m) => m.wavelengthNm)).toEqual([780, 852]);
     expect(result.get('down')![0]!.value).toBeCloseTo(-1, 7);
+  });
+});
+
+describe('lensFocalDistances', () => {
+  test('a plano-convex singlet: front and back distances swap when it is flipped', () => {
+    const n = refractiveIndex(bk7, 780);
+    const f = 51.5 / (n - 1);
+    const [curvedFirst] = lensFocalDistances(singlet(), [780], {});
+    expect(curvedFirst!.eflMm).toBeCloseTo(f, 9);
+    expect(curvedFirst!.frontMm).toBeCloseTo(f, 9);
+    expect(curvedFirst!.backMm).toBeCloseTo(f - 3.6 / n, 9);
+    const [flatFirst] = lensFocalDistances({ ...singlet(), flipped: true }, [780], {});
+    expect(flatFirst!.frontMm).toBeCloseTo(f - 3.6 / n, 9);
+    expect(flatFirst!.backMm).toBeCloseTo(f, 9);
+    // Spherical aberration pulls the full-aperture focus in towards the lens.
+    expect(curvedFirst!.backBestMm!).toBeLessThan(curvedFirst!.backMm);
+    expect(curvedFirst!.frontBestMm).toBeCloseTo(flatFirst!.backBestMm!, 9);
+  });
+
+  test('the modelled AHL15-12 asphere has the working distances of the lab note', () => {
+    const s = parseSetup(rbImaging);
+    const asphere = s.optics.find((o): o is CatalogueLens => o.kind === 'lens' && o.label === 'Asphere')!;
+    const [r606, r780, r852] = lensFocalDistances(asphere, [606, 780, 852], s.glasses);
+    expect(r606!.frontMm).toBeCloseTo(8.87, 3);
+    expect(r780!.frontMm).toBeCloseTo(9.0, 3);
+    expect(r852!.frontMm).toBeCloseTo(9.036, 3);
+    expect(r780!.eflMm).toBeCloseTo(12, 3);
+    // Corrected for 780 nm over the whole aperture; at 852 nm the edge focuses further out.
+    expect(r780!.frontBestMm!).toBeCloseTo(r780!.frontMm, 3);
+    expect(r852!.frontBestMm!).toBeGreaterThan(r852!.frontMm + 1e-3);
+  });
+
+  test('an unknown glass gives no distances', () => {
+    const lens = singlet();
+    const unknown = { ...lens, prescription: { ...lens.prescription, surfaces: [surf(1 / 51.5, 3.6, 'NO-SUCH-GLASS'), surf(0, 0, null)] } };
+    expect(lensFocalDistances(unknown, [780, 852], {})).toEqual([null, null]);
   });
 });

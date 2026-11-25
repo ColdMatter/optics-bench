@@ -608,6 +608,16 @@ table.surfaces .num {
   text-align: right;
 }
 
+.lens-info .section-head {
+  margin-top: 10px;
+}
+
+.focal-note {
+  font-size: 11px;
+  margin: 4px 0 0;
+  max-width: 46em;
+}
+
 .phase {
   padding: 2px 10px 10px;
 }

@@ -1,6 +1,7 @@
+import { lensFocalDistances, type LensFocalDistances } from '../engine/focus';
 import { numberRules, type NumberRule } from '../engine/io';
 import { flipPrescription, lensThickness } from '../engine/lens';
-import type { CatalogueLens, Id, Optic, PhaseTerm, PointSource, Slm, Source } from '../engine/types';
+import type { CatalogueLens, GlassData, Id, LensPrescription, Optic, PhaseTerm, PointSource, Setup, Slm, Source } from '../engine/types';
 import { formatFull, h, numberControl, numberListControl, pickFile, textControl, type Control } from './controls';
 import { findElement, kindNames, updateElement } from './elements';
 import type { AppState, Store } from './store';
@@ -148,6 +149,30 @@ function radius(curvature: number): string {
   return curvature === 0 ? '∞' : (1 / curvature).toFixed(2);
 }
 
+/** With no sources there is no wavelength to use, so the focal distances are given at the d line. */
+export const REFERENCE_WAVELENGTH_NM = 587.6;
+
+/** The wavelengths a lens's focal distances are shown at: every source wavelength, else the d line. */
+export function focalWavelengths(setup: Setup): number[] {
+  const all = [...new Set(setup.sources.flatMap((s) => s.wavelengthsNm))].sort((a, b) => a - b);
+  return all.length ? all : [REFERENCE_WAVELENGTH_NM];
+}
+
+// The full-aperture focus traces two fans per wavelength; a drag changes z only, so keep it by prescription.
+const focalMemo = new WeakMap<Record<string, GlassData>, WeakMap<LensPrescription, Map<string, (LensFocalDistances | null)[]>>>();
+function memoFocalDistances(lens: CatalogueLens, wavelengthsNm: number[], glasses: Record<string, GlassData>) {
+  let byPrescription = focalMemo.get(glasses);
+  if (!byPrescription) focalMemo.set(glasses, (byPrescription = new WeakMap()));
+  let byKey = byPrescription.get(lens.prescription);
+  if (!byKey) byPrescription.set(lens.prescription, (byKey = new Map()));
+  const key = `${lens.flipped}|${wavelengthsNm.join(',')}`;
+  let rows = byKey.get(key);
+  if (!rows) byKey.set(key, (rows = lensFocalDistances(lens, wavelengthsNm, glasses)));
+  return rows;
+}
+
+const distance = (v: number | null) => (v === null || !Number.isFinite(v) ? '—' : v.toFixed(3));
+
 export interface PropertiesPanel {
   render(state: AppState, warnings: Map<Id, string[]>): void;
 }
@@ -155,6 +180,7 @@ export interface PropertiesPanel {
 export function createPropertiesPanel(container: HTMLElement, store: Store): PropertiesPanel {
   let shape: string | null = null;
   let current: Item | undefined;
+  let currentSetup: Setup | undefined;
   let refreshers: (() => void)[] = [];
   const warningsBox = h('ul', { class: 'prop-warnings' });
 
@@ -223,6 +249,8 @@ export function createPropertiesPanel(container: HTMLElement, store: Store): Pro
       update(flip.checked ? 'Flip' : 'Unflip', (item) => ({ ...(item as CatalogueLens), flipped: flip.checked })),
     );
     const body = h('tbody');
+    const focalBody = h('tbody');
+    const focalNote = h('p', { class: 'muted focal-note' });
     const thickness = h('span', { class: 'num' });
     const hasConic = p.surfaces.some((s) => s.conic !== 0);
     const hasAsphere = p.surfaces.some((s) => s.asphere.length > 0);
@@ -230,6 +258,30 @@ export function createPropertiesPanel(container: HTMLElement, store: Store): Pro
       flip.checked = lens().flipped;
       const shown = lens().flipped ? flipPrescription(lens().prescription) : lens().prescription;
       thickness.textContent = `${formatFull(lensThickness(shown))} mm`;
+      if (currentSetup) {
+        const wavelengths = focalWavelengths(currentSetup);
+        const rows = memoFocalDistances(lens(), wavelengths, currentSetup.glasses);
+        focalBody.replaceChildren(
+          ...rows.map((r, i) =>
+            h(
+              'tr',
+              {},
+              h('td', { class: 'num' }, formatFull(wavelengths[i]!)),
+              ...(r === null
+                ? [h('td', { colspan: '3', class: 'muted' }, 'unknown glass')]
+                : [
+                    h('td', { class: 'num' }, distance(r.eflMm)),
+                    h('td', { class: 'num' }, distance(r.frontMm), h('span', { class: 'muted' }, ` / ${distance(r.frontBestMm)}`)),
+                    h('td', { class: 'num' }, distance(r.backMm), h('span', { class: 'muted' }, ` / ${distance(r.backBestMm)}`)),
+                  ]),
+            ),
+          ),
+        );
+        focalNote.textContent =
+          (currentSetup.sources.length ? '' : `No sources, so shown at the d line (${REFERENCE_WAVELENGTH_NM} nm). `) +
+          'Paraxial / full clear aperture. Front: first vertex to the point imaged to infinity. ' +
+          'Back: last vertex to the focus of collimated light.';
+      }
       body.replaceChildren(
         ...shown.surfaces.map((s, i) =>
           h(
@@ -280,6 +332,25 @@ export function createPropertiesPanel(container: HTMLElement, store: Store): Pro
         ),
         body,
       ),
+      h('div', { class: 'section-head' }, 'Focal distances'),
+      h(
+        'table',
+        { class: 'surfaces focal' },
+        h(
+          'thead',
+          {},
+          h(
+            'tr',
+            {},
+            h('th', { class: 'num' }, 'λ (nm)'),
+            h('th', { class: 'num', title: 'Effective focal length' }, 'EFL (mm)'),
+            h('th', { class: 'num', title: 'Front working distance: paraxial / full aperture' }, 'Front WD (mm)'),
+            h('th', { class: 'num', title: 'Back working distance: paraxial / full aperture' }, 'Back WD (mm)'),
+          ),
+        ),
+        focalBody,
+      ),
+      focalNote,
     );
   }
 
@@ -387,6 +458,7 @@ export function createPropertiesPanel(container: HTMLElement, store: Store): Pro
   return {
     render(state, warnings) {
       current = findElement(state.setup, state.selectedId);
+      currentSetup = state.setup;
       const nextShape = shapeOf(current);
       if (nextShape !== shape) {
         shape = nextShape;

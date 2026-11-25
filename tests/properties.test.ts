@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createPropertiesPanel, fieldsFor, parsePhaseCsv, phaseTermFields } from '../src/ui/properties';
+import { createPropertiesPanel, fieldsFor, focalWavelengths, parsePhaseCsv, phaseTermFields } from '../src/ui/properties';
 import { createStore } from '../src/ui/store';
 import type { Aperture, GaussianSource, IdealLens, PointSource, Setup } from '../src/engine/types';
 
@@ -92,5 +92,13 @@ describe('properties panel', () => {
     expect(lens.focalLengthMm).toBe(-50);
     store.undo();
     expect(store.get().setup).toBe(setup);
+  });
+});
+
+describe('focalWavelengths', () => {
+  test('every source wavelength once, in order; the d line when there are no sources', () => {
+    const setup = (sources: Setup['sources']): Setup => ({ version: 1, sources, optics: [], glasses: {} });
+    expect(focalWavelengths(setup([{ ...point, wavelengthsNm: [852, 780] }, { ...gaussian, wavelengthsNm: [780, 606] }]))).toEqual([606, 780, 852]);
+    expect(focalWavelengths(setup([]))).toEqual([587.6]);
   });
 });

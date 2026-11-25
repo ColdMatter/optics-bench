@@ -1,7 +1,8 @@
 import { radiusAt, traceGaussian } from './gaussian';
+import { flipPrescription, lensAbcd, lensThickness } from './lens';
 import { opticExtent } from './optic';
 import { defaultEndZ, launchRays, lookupFor, sortedByAxialStart, traceRayCollecting } from './trace';
-import type { GlassLookup, Id, Optic, Ray, Screen, Setup, Source, SourceTrace } from './types';
+import type { CatalogueLens, GlassData, GlassLookup, Id, Optic, Ray, Screen, Setup, Source, SourceTrace } from './types';
 
 export interface FocusResult {
   wavelengthNm: number;
@@ -294,4 +295,60 @@ export function screenMagnifications(setup: Setup, sourceId: Id): Map<Id, Magnif
     for (const screen of screens) out.get(screen.id)!.push(byScreen.get(screen.id)!);
   }
   return out;
+}
+
+/**
+ * A lens's focal distances at one wavelength, in the orientation given. `backMm`: from the last
+ * vertex to the focus of collimated light arriving at the first surface. `frontMm`: from the first
+ * vertex back to the point that leaves the lens collimated (the working distance on that side).
+ * Paraxial values come from the lens matrix (exact paraxially, aspheres included, since only the
+ * vertex curvature matters). `…BestMm` are the best focus of a collimated beam filling the clear
+ * aperture of the surface it enters, from real rays; null when fewer than two rays survive.
+ * Negative distances are virtual (a diverging lens) or inside the lens.
+ */
+export interface LensFocalDistances {
+  wavelengthNm: number;
+  eflMm: number;
+  backMm: number;
+  frontMm: number;
+  backBestMm: number | null;
+  frontBestMm: number | null;
+}
+
+const APERTURE_FILL = 0.999;
+const APERTURE_RAYS = 101;
+
+/** Best focus past the last vertex for a collimated beam filling the first surface's clear aperture. */
+function fullApertureBackFocus(lens: CatalogueLens, wavelengthNm: number, glasses: Record<string, GlassData>): number | null {
+  const placed: CatalogueLens = { ...lens, z: 0, decentreMm: 0, tiltDeg: 0 };
+  const shown = lens.flipped ? flipPrescription(lens.prescription) : lens.prescription;
+  const widthMm = 2 * APERTURE_FILL * shown.surfaces[0]!.semiDiameterMm;
+  const beam: Source = {
+    kind: 'collimated', id: 'beam', label: '', z: -1, y: 0, wavelengthsNm: [wavelengthNm], widthMm, angleDeg: 0, rayCount: APERTURE_RAYS,
+  };
+  const [result] = focusPerWavelength({ version: 1, sources: [beam], optics: [placed], glasses }, 'beam');
+  return result?.bestZ == null ? null : result.bestZ - lensThickness(shown);
+}
+
+/** Focal distances of a lens per wavelength; null for a wavelength where one of its glasses is unknown. */
+export function lensFocalDistances(
+  lens: CatalogueLens,
+  wavelengthsNm: number[],
+  glasses: Record<string, GlassData>,
+): (LensFocalDistances | null)[] {
+  const lookup = lookupFor(glasses);
+  if (lens.prescription.surfaces.some((s) => s.glassAfter !== null && !lookup(s.glassAfter))) return wavelengthsNm.map(() => null);
+  const reversed: CatalogueLens = { ...lens, flipped: !lens.flipped };
+  return wavelengthsNm.map((wavelengthNm) => {
+    const [a, , c, d] = lensAbcd(lens, wavelengthNm, lookup);
+    return {
+      wavelengthNm,
+      eflMm: -1 / c,
+      backMm: -a / c,
+      frontMm: -d / c,
+      backBestMm: fullApertureBackFocus(lens, wavelengthNm, glasses),
+      // Reversibility: the front focal point is the back focus of the lens turned round.
+      frontBestMm: fullApertureBackFocus(reversed, wavelengthNm, glasses),
+    };
+  });
 }
