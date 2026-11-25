@@ -1,12 +1,19 @@
 import extraLenses from '../data/extra-lenses.json';
 import lenses from '../data/lenses.json';
+import thorlabsCatalogue from '../data/thorlabs-catalogue.json';
 import { newId } from '../engine/io';
 import { opticExtent } from '../engine/optic';
 import type { GlassData, Id, LensPrescription, Optic, Setup, Source, TraceWarning } from '../engine/types';
 import type { AppState, Store } from './store';
 
-/** The shared catalogue: the Thorlabs parts, then lenses promoted with `npm run promote-lenses`. */
-export const catalogue = [...lenses, ...extraLenses] as LensPrescription[];
+/**
+ * The shared catalogue, by part number: Thorlabs parts from their own Zemax files (`npm run lenses`),
+ * the rest of Thorlabs' Zemax catalogue (`npm run catalogue`), and lenses promoted from local
+ * catalogues (`npm run promote-lenses`).
+ */
+export const catalogue = ([...lenses, ...thorlabsCatalogue, ...extraLenses] as LensPrescription[]).sort((a, b) =>
+  a.partNumber.localeCompare(b.partNumber, 'en', { numeric: true }),
+);
 const DEFAULT_LENS = 'AC254-100-B';
 const GAP_MM = 25;
 

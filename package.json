@@ -10,6 +10,7 @@
     "e2e": "npm run build && node e2e/smoke.mjs",
     "glasses": "node scripts/build-glasses.mjs",
     "lenses": "node scripts/fetch-thorlabs.mjs",
+    "catalogue": "node scripts/build-catalogue.mjs",
     "check-setup": "rolldown scripts/check-setup.ts --platform node --format esm --file node_modules/.cache/check-setup.mjs && node node_modules/.cache/check-setup.mjs",
     "promote-lenses": "rolldown scripts/promote-lenses.ts --platform node --format esm --file node_modules/.cache/promote-lenses.mjs && node node_modules/.cache/promote-lenses.mjs"
   },

@@ -159,7 +159,9 @@ export function readPrescription(v: unknown, path: string): LensPrescription {
   const surfacesPath = at(path, 'surfaces');
   const surfaces = arr(o.surfaces, surfacesPath);
   if (surfaces.length < 2) fail(surfacesPath, 'expected at least 2 surfaces');
+  const design = o.designWavelengthNm === undefined ? {} : { designWavelengthNm: positive(o.designWavelengthNm, at(path, 'designWavelengthNm')) };
   return {
+    ...design,
     partNumber: nonEmptyStr(o.partNumber, at(path, 'partNumber')),
     vendor: str(o.vendor, at(path, 'vendor')),
     source: oneOf(o.source, at(path, 'source'), ['zmx', 'drawing'] as const),

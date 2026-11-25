@@ -74,7 +74,7 @@ The smoke test drives the built page in Playwright's Chromium. Download that bro
 
 ## Glass data
 
-`src/data/glasses.json` is generated from the CC0 [refractiveindex.info database](https://github.com/polyanskiy/refractiveindex.info-database). To regenerate it:
+`src/data/glasses.json` is generated from the CC0 [refractiveindex.info database](https://github.com/polyanskiy/refractiveindex.info-database): the optical glasses of Schott, Ohara, CDGM, Hoya, Sumita and Hikari, plus fused silica, CaF₂, ZnSe, silicon, germanium, MgF₂ (ordinary ray), PMMA and Schott's old BK7 (as N-BK7) under the names Zemax files use (`F_SILICA`, `CAF2`, `ZNSE`, `SILICON`, `GERMANIUM`, `MGF2`, `ACRYLIC`, `BK7`). Only entries with a dispersion formula (refractiveindex.info types 1–3) are used. To regenerate it:
 
 ```
 git clone --depth 1 https://github.com/polyanskiy/refractiveindex.info-database
@@ -83,14 +83,26 @@ npm run glasses -- <path-to-clone>
 
 ## Lens catalogue
 
-`src/data/lenses.json` holds the Thorlabs lenses parsed from their Zemax files. The Thorlabs focal-shift curves in `src/data/thorlabs-focal-shift/` validate the tracer against them. To regenerate both (needs Playwright with Chromium, and `pdftotext` from Poppler):
+The catalogue lists about 2,900 Thorlabs lenses, sorted by part number, from three files the app reads together.
+
+`src/data/lenses.json` holds 63 common Thorlabs parts (AC254 and AC508 achromats, Ø1″ N-BK7 plano-convex lenses), each parsed from the Zemax file on its product page. The Thorlabs focal-shift curves in `src/data/thorlabs-focal-shift/` validate the tracer against them. To regenerate both (needs Playwright with Chromium, and `pdftotext` from Poppler):
 
 ```
 npm run lenses              # download into scripts/vendor-cache/, then rebuild
 npm run lenses -- --offline # rebuild from the cache
 ```
 
-`src/data/extra-lenses.json` holds lenses promoted from a local catalogue, and the app lists them with the Thorlabs ones. `npm run lenses` leaves it alone. To promote lenses, then rebuild and commit:
+`src/data/thorlabs-catalogue.json` holds the rest of Thorlabs' [complete Zemax catalogue](https://www.thorlabs.com/software-pages/zemax?tabName=Zemax%20Catalog): one zip holding a Zemax `.ZMF` lens catalogue. The `.ZMF` obfuscates each lens's `.zmx` text; `scripts/lib/zmf.mjs` decodes it with the scheme open-source readers use. Each lens's part number comes from its catalogue record, and its design wavelength from its `.zmx`. Parts already in `lenses.json` are left to it, because the `.ZMF` lacks some of them and has older prescriptions for others. Lenses the tracer can't represent are left out: cylindrical (toroidal) lenses, axicons (odd asphere), GRIN lenses, and those using a material missing from `glasses.json` (mostly moulding glasses such as `D-ZK3M`, plus `B270`, infrared `BAF2` and a few others). To regenerate it:
+
+```
+npm run catalogue              # download the zip into scripts/vendor-cache/, then rebuild
+npm run catalogue -- --offline # rebuild from the cached zip
+npm run catalogue -- path/to/zemaxcatalog.zip   # or a .ZMF
+```
+
+It prints how many lenses were left out and why, and lists each one in `scripts/vendor-cache/catalogue-skipped.txt`. Run `npm run lenses` first if both need regenerating.
+
+`src/data/extra-lenses.json` holds lenses promoted from a local catalogue, and the app lists them with the Thorlabs ones. Neither Thorlabs script touches it. To promote lenses, then rebuild and commit:
 
 ```
 npm run promote-lenses -- path/to/my-lenses.json              # every lens in the file
@@ -108,7 +120,7 @@ A setup is a JSON file written by `serialiseSetup` and read by `parseSetup` (`sr
 | `version` | `1` |
 | `sources[]` | `kind` (`point`, `collimated`, `gaussian`), `id`, `label`, `z`, `y` (mm), `wavelengthsNm` (non-empty, each > 0). `point`: `coneHalfAngleDeg` (`"fill"` or 0 to 90 exclusive), `rayCount` (integer ≥ 1). `collimated`: `widthMm` (≥ 0), `angleDeg`, `rayCount`. `gaussian`: `angleDeg`, `waistRadiusMm` (> 0), `waistZ` (mm), `m2` (≥ 1). |
 | `optics[]` | Common: `kind`, `id`, `label`, `z` (mm; first vertex of a lens). Lens, ideal lens and SLM also have `decentreMm` and `tiltDeg` (\|tilt\| < 90). |
-| `optics[]` lens | `kind: "lens"`, `flipped` (boolean), `prescription`: `partNumber` (non-empty), `vendor`, `source` (`zmx` or `drawing`), `sourceRef`, `surfaces[]` (at least 2). |
+| `optics[]` lens | `kind: "lens"`, `flipped` (boolean), `prescription`: `partNumber` (non-empty), `vendor`, `source` (`zmx` or `drawing`), `sourceRef`, `surfaces[]` (at least 2), and optionally `designWavelengthNm` (> 0), the primary wavelength of its Zemax file. |
 | lens `surfaces[]` | `curvature` (1/mm, positive = centre of curvature at +z), `conic`, `asphere` (`[A4, A6, …]`, mm^-3, mm^-5, …), `semiDiameterMm` (> 0), `thicknessToNextMm` (≥ 0), `glassAfter` (glass name, or `null` for air; `null` on the last surface). |
 | `optics[]` ideal lens | `kind: "ideal"`, `focalLengthMm` (non-zero, negative allowed), `apertureMm` (diameter, > 0). |
 | `optics[]` SLM | `kind: "slm"`, `apertureMm`, `pixelPitchUm`, `designWavelengthNm` (all > 0), `phase[]` of terms: `fresnel` (`focalLengthMm`, non-zero), `blaze` (`angleDeg`), `polynomial` (`coefficientsRad`, Σ a_k (y/R)^k for k = 1…, R = aperture/2), `table` (`yMm` strictly increasing, `phaseRad` of the same length, at least 2 points). |

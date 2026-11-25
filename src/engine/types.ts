@@ -60,6 +60,8 @@ export interface LensPrescription {
   source: 'zmx' | 'drawing';
   sourceRef: string;
   surfaces: PrescriptionSurface[];
+  /** The primary wavelength of the lens's Zemax file, which its quoted focal length refers to. */
+  designWavelengthNm?: number;
 }
 
 interface Placed {

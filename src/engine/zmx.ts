@@ -42,6 +42,9 @@ export function parseZmx(text: string, vendor = '', fileName?: string): LensPres
   let partNumber = fileName?.replace(/\.zmx$/i, '') ?? '';
   let scale = 1;
   const surfaces: RawSurface[] = [];
+  // Wavelengths in µm by number (WAVM n λ weight, or the older WAVL λ1 λ2 …) and the primary one.
+  const wavelengthsUm = new Map<number, number>();
+  let primary = 1;
 
   for (const line of text.split(/\r?\n/)) {
     const [keyword, ...args] = line.trim().split(/\s+/);
@@ -52,6 +55,15 @@ export function parseZmx(text: string, vendor = '', fileName?: string): LensPres
         break;
       case 'NAME':
         if (args[0]) partNumber = args[0];
+        break;
+      case 'WAVM':
+        wavelengthsUm.set(Number(args[0]), Number(args[1]));
+        break;
+      case 'WAVL':
+        args.forEach((w, i) => wavelengthsUm.set(i + 1, Number(w)));
+        break;
+      case 'PWAV':
+        primary = Number(args[0]);
         break;
       case 'UNIT': {
         const unit = args[0] ?? '';
@@ -124,7 +136,10 @@ export function parseZmx(text: string, vendor = '', fileName?: string): LensPres
     };
   });
 
-  return { partNumber, vendor, source: 'zmx', sourceRef: fileName ?? '', surfaces: lensSurfaces };
+  const lens: LensPrescription = { partNumber, vendor, source: 'zmx', sourceRef: fileName ?? '', surfaces: lensSurfaces };
+  const designUm = wavelengthsUm.get(primary);
+  if (designUm !== undefined && Number.isFinite(designUm) && designUm > 0) lens.designWavelengthNm = Math.round(designUm * 1e6) / 1e3;
+  return lens;
 }
 
 // PARM k of an even asphere multiplies r^(2k); its length unit scales as L^(1-2k).

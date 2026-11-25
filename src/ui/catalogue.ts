@@ -24,6 +24,8 @@ export interface CatalogueEntry {
 const BAND_CENTRE_NM: Record<string, number> = { A: 535, B: 855 };
 const SINGLET_DESIGN_NM = 587.6;
 const FOCAL_MATCH_FRACTION = 0.02;
+// Rows drawn at once: the list is rebuilt on every keystroke.
+const MAX_ROWS = 200;
 const MIN_INDEX = 1;
 const MAX_INDEX = 3;
 // A constant index applies at every wavelength.
@@ -34,6 +36,7 @@ export const bundledGlassNames = bundled.map((g) => g.name).sort((a, b) => a.loc
 const bundledLookup = makeGlassLookup();
 
 function designWavelengthNm(p: LensPrescription): number {
+  if (p.designWavelengthNm !== undefined) return p.designWavelengthNm;
   const coating = /-([AB])$/.exec(p.partNumber)?.[1];
   return coating ? BAND_CENTRE_NM[coating]! : SINGLET_DESIGN_NM;
 }
@@ -45,19 +48,28 @@ export function nominalFocalLengthMm(p: LensPrescription, glasses: GlassLookup =
   return -1 / lensAbcd(lens, designWavelengthNm(p), glasses)[2];
 }
 
-function lensType(p: LensPrescription): string {
-  const elements = p.surfaces.length - 1;
-  if (elements === 1) return p.surfaces.some((s) => s.curvature === 0) ? 'Plano-convex singlet' : 'Singlet';
-  if (elements === 2 && /^AC/.test(p.partNumber)) return 'Achromatic doublet';
-  return elements === 2 ? 'Cemented doublet' : `Cemented ${elements}-element lens`;
+function lensType(p: LensPrescription, focalLengthMm: number): string {
+  const elements = p.surfaces.filter((s) => s.glassAfter !== null).length;
+  const airSpaced = p.surfaces.slice(0, -1).some((s) => s.glassAfter === null);
+  if (airSpaced) return `Air-spaced ${elements}-element lens`;
+  if (elements === 2) return /^AC/.test(p.partNumber) ? 'Achromatic doublet' : 'Cemented doublet';
+  if (elements > 2) return `Cemented ${elements}-element lens`;
+  const positive = !(focalLengthMm < 0);
+  if (p.surfaces.some((s) => s.conic !== 0 || s.asphere.some((a) => a !== 0))) return positive ? 'Aspheric lens' : 'Negative aspheric lens';
+  const [front, back] = [p.surfaces[0]!.curvature, p.surfaces[1]!.curvature];
+  if (front === 0 || back === 0) return positive ? 'Plano-convex singlet' : 'Plano-concave singlet';
+  if (front > 0 && back < 0) return 'Bi-convex singlet';
+  if (front < 0 && back > 0) return 'Bi-concave singlet';
+  return positive ? 'Positive meniscus' : 'Negative meniscus';
 }
 
 function entryFor(prescription: LensPrescription, glasses: GlassLookup = bundledLookup): CatalogueEntry {
+  const focalLengthMm = nominalFocalLengthMm(prescription, glasses);
   return {
     prescription,
-    focalLengthMm: nominalFocalLengthMm(prescription, glasses),
+    focalLengthMm,
     diameterMm: 2 * Math.max(...prescription.surfaces.map((s) => s.semiDiameterMm)),
-    type: lensType(prescription),
+    type: lensType(prescription, focalLengthMm),
   };
 }
 
@@ -195,7 +207,7 @@ export function openCatalogue(store: Store): void {
         'tr',
         {},
         h('th', {}, 'Part'),
-        h('th', { class: 'num', title: 'Paraxial focal length at 535 nm (-A coating), 855 nm (-B) or 587.6 nm (others)' }, 'f (mm)'),
+        h('th', { class: 'num', title: 'Paraxial focal length at the design wavelength in the lens\'s Zemax file; for older entries 535 nm (-A coating), 855 nm (-B) or 587.6 nm' }, 'f (mm)'),
         h('th', { class: 'num' }, '⌀ (mm)'),
         h('th', {}, 'Type'),
         h('th', { 'aria-label': 'Remove' }),
@@ -317,7 +329,7 @@ export function openCatalogue(store: Store): void {
     chosen ??= shown[0] ?? null;
     count.textContent = `${shown.length} of ${entries.length}`;
     tbody.replaceChildren(
-      ...shown.map((entry) => {
+      ...shown.slice(0, MAX_ROWS).map((entry) => {
         let removeCell: HTMLElement = h('td');
         if (entry.local) {
           const remove = h(
@@ -350,6 +362,9 @@ export function openCatalogue(store: Store): void {
       }),
     );
     if (shown.length === 0) tbody.append(h('tr', {}, h('td', { colspan: 5, class: 'muted' }, 'No part matches. Import its .zmx instead.')));
+    if (shown.length > MAX_ROWS) {
+      tbody.append(h('tr', {}, h('td', { colspan: 5, class: 'muted' }, `Showing the first ${MAX_ROWS}. Type a part number or focal length to narrow the list.`)));
+    }
     addButton.disabled = chosen === null;
   }
 

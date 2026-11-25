@@ -27,7 +27,11 @@ if (!fileArg) {
 const local = parseLensFile(readFileSync(resolve(process.env.INIT_CWD ?? process.cwd(), fileArg), 'utf8'));
 const dataDir = join(process.cwd(), 'src', 'data');
 const extraPath = join(dataDir, 'extra-lenses.json');
-const thorlabs = new Set((JSON.parse(readFileSync(join(dataDir, 'lenses.json'), 'utf8')) as LensPrescription[]).map((l) => l.partNumber.toLowerCase()));
+const thorlabs = new Set(
+  ['lenses.json', 'thorlabs-catalogue.json'].flatMap((f) =>
+    (JSON.parse(readFileSync(join(dataDir, f), 'utf8')) as LensPrescription[]).map((l) => l.partNumber.toLowerCase()),
+  ),
+);
 const extra = JSON.parse(readFileSync(extraPath, 'utf8')) as LensPrescription[];
 
 const lookup = makeGlassLookup();
