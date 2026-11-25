@@ -1,4 +1,4 @@
-import { focusPerWavelength, focusShiftCurve, screenStats, type FocusResult } from '../engine/focus';
+import { focusPerWavelength, focusShiftCurve, screenMagnifications, screenStats, type FocusResult, type Magnification } from '../engine/focus';
 import { radiusAt } from '../engine/gaussian';
 import { opticExtent } from '../engine/optic';
 import type { GaussianTrace, Id, Optic, Screen, Setup, SetupTrace, Source, TraceWarning } from '../engine/types';
@@ -23,6 +23,18 @@ export function formatLength(lengthMm: number): string {
   if (Math.abs(lengthMm) >= 0.9995) return mm(lengthMm);
   const um = lengthMm * 1e3;
   return Math.abs(um) < 0.01 ? `${um.toFixed(2)} µm` : `${um.toPrecision(3)} µm`;
+}
+
+/** The magnification suffix for a screen line: `, M = −1.500`, or why there is none. */
+export function formatMagnification(m: Magnification | undefined): string {
+  if (!m) return '';
+  if (m.value === null) {
+    if (m.reason === 'edge-ray-blocked') return ', M: edge ray blocked';
+    if (m.reason === 'undefined') return ', M undefined (no beam width)';
+    return ', M unavailable';
+  }
+  const v = Math.abs(m.value) < 1e-12 ? 0 : m.value;
+  return `, M = ${v.toPrecision(4)}`;
 }
 
 const signed = (lengthMm: number) => `${lengthMm < 0 ? '' : '+'}${formatLength(lengthMm)}`;
@@ -135,6 +147,16 @@ function memoFocus(setup: Setup, sourceId: Id): FocusResult[] {
   return results;
 }
 
+// Point-source magnification retraces the fan at ±δ, so it also runs once per setup.
+const magnificationMemo = new WeakMap<Setup, Map<Id, Map<Id, Magnification[]>>>();
+function memoMagnification(setup: Setup, sourceId: Id): Map<Id, Magnification[]> {
+  let bySource = magnificationMemo.get(setup);
+  if (!bySource) magnificationMemo.set(setup, (bySource = new Map()));
+  let results = bySource.get(sourceId);
+  if (!results) bySource.set(sourceId, (results = screenMagnifications(setup, sourceId)));
+  return results;
+}
+
 type ShiftCurve = { wavelengthNm: number; paraxialZ: number | null }[];
 const curveMemo = new WeakMap<Setup, Map<string, ShiftCurve>>();
 function memoCurve(setup: Setup, sourceId: Id, minNm: number, maxNm: number): ShiftCurve {
@@ -148,7 +170,9 @@ function memoCurve(setup: Setup, sourceId: Id, minNm: number, maxNm: number): Sh
 
 function lineClass(line: string): string {
   if (line === OFF_AXIS_NOTE) return 'note';
-  if (line.includes(UNRELIABLE) || line.includes(NO_RAYS) || line.includes('blocked at')) return 'warn';
+  if (line.includes(UNRELIABLE) || line.includes(NO_RAYS) || line.includes('blocked at') || line.includes('edge ray blocked')) {
+    return 'warn';
+  }
   if (line.startsWith('Δfocus')) return 'shift';
   return '';
 }
@@ -160,13 +184,20 @@ function screensAfter(setup: Setup, source: Source): Screen[] {
 function sourceLines(setup: Setup, source: Source, trace: SetupTrace, gaussians: GaussianTrace[], labels: Record<Id, string>): string[] {
   const offAxis = isOffAxis(setup, source);
   const screens = screensAfter(setup, source);
+  const magnifications = screens.length ? memoMagnification(setup, source.id) : new Map<Id, Magnification[]>();
+  const magnificationAt = (screenId: Id, wavelengthNm: number) =>
+    formatMagnification(magnifications.get(screenId)?.find((m) => m.wavelengthNm === wavelengthNm));
   if (source.kind === 'gaussian') {
     const beams = gaussians.filter((g) => g.sourceId === source.id);
     const lines = beams.flatMap((g) => formatGaussian(g, labels));
     for (const screen of screens) {
       for (const g of beams) {
         const w = radiusAt(g, screen.z);
-        lines.push(`${screen.label}, ${g.wavelengthNm} nm: ${w === null || !Number.isFinite(w) ? NO_RAYS : `w = ${formatLength(w)}`}`);
+        lines.push(
+          `${screen.label}, ${g.wavelengthNm} nm: ${
+            w === null || !Number.isFinite(w) ? NO_RAYS : `w = ${formatLength(w)}${magnificationAt(screen.id, g.wavelengthNm)}`
+          }`,
+        );
       }
     }
     if (offAxis) lines.push(OFF_AXIS_NOTE);
@@ -179,7 +210,8 @@ function sourceLines(setup: Setup, source: Source, trace: SetupTrace, gaussians:
       const head = `${screen.label}, ${spot.wavelengthNm} nm:`;
       return spot.centroidMm === null
         ? `${head} ${NO_RAYS}`
-        : `${head} ${spot.heightsMm.length} rays, centroid y = ${mm(spot.centroidMm)}, RMS ${formatLength(spot.rmsMm ?? 0)}`;
+        : `${head} ${spot.heightsMm.length} rays, centroid y = ${mm(spot.centroidMm)}, RMS ${formatLength(spot.rmsMm ?? 0)}` +
+            magnificationAt(screen.id, spot.wavelengthNm);
     }),
   );
   return [...focusLines, ...screenLines, ...(offAxis ? [OFF_AXIS_NOTE] : [])];

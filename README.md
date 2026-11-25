@@ -9,6 +9,7 @@ A standalone 2D optics bench simulator that runs in the browser. `npm run build`
 - Propagates Gaussian beams through the paraxial (ABCD) behaviour of the real surfaces and draws the ±w(z) envelope.
 - Treats an SLM as a 1D phase profile that bends each ray by the local phase gradient.
 - Reads out paraxial and best focus per wavelength, the focal shift between wavelengths, Gaussian waists and screen spot statistics.
+- Gives the magnification from every upstream source to each screen, per wavelength. For a point source it is dy′/dy of the spot centroid: how far the spot on the screen moves per mm the source moves, signed, so negative means inverted. It works on axis, includes aberrations and distortion, and is the usual imaging magnification at an image plane. Because it follows the centroid of the traced rays, an aberrated spot's M depends on the cone the source launches. For a collimated source it is the signed separation of the two edge rays on the screen over the launch width (the beam expansion; it reads "edge ray blocked" if either is clipped). For a Gaussian source it is w at the screen over w at the source.
 - Solves for lens positions that meet Gaussian beam-size targets.
 
 It does not do:

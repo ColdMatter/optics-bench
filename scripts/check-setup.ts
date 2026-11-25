@@ -2,15 +2,16 @@
 //
 // Validates each setup as the app's Open… does and prints what the readouts panel would:
 // warnings, the focus of every point and collimated source per wavelength, Gaussian waists,
-// and the spot on every screen. Exits non-zero if any file fails to parse.
+// and the spot and magnification on every screen. Exits non-zero if any file fails to parse.
 import { readFileSync } from 'node:fs';
-import { focusPerWavelength, screenStats } from '../src/engine/focus';
-import { traceGaussians } from '../src/engine/gaussian';
+import { focusPerWavelength, screenMagnifications, screenStats, type Magnification } from '../src/engine/focus';
+import { radiusAt, traceGaussians } from '../src/engine/gaussian';
 import { parseSetup } from '../src/engine/io';
 import { traceSetup } from '../src/engine/trace';
 
 const mm = (v: number | null) => (v === null ? '—' : `${v.toFixed(3)} mm`);
 const um = (v: number | null) => (v === null ? '—' : `${(v * 1e3).toFixed(2)} µm`);
+const mag = (m: Magnification | undefined) => (!m ? '' : m.value === null ? `, M — (${m.reason})` : `, M ${m.value.toPrecision(6)}`);
 
 let failed = false;
 for (const file of process.argv.slice(2)) {
@@ -26,8 +27,19 @@ for (const file of process.argv.slice(2)) {
   const trace = traceSetup(setup);
   for (const w of trace.warnings) console.log(`  warning: ${JSON.stringify(w)}`);
   const screens = setup.optics.filter((o) => o.kind === 'screen');
+  const gaussians = traceGaussians(setup, trace.endZ);
   for (const source of setup.sources) {
     console.log(`  ${source.label} (${source.kind}, id ${source.id})`);
+    const magnifications = screenMagnifications(setup, source.id);
+    const magAt = (screenId: string, nm: number) => mag(magnifications.get(screenId)?.find((m) => m.wavelengthNm === nm));
+    if (source.kind === 'gaussian') {
+      for (const screen of screens) {
+        if (screen.z < source.z) continue;
+        for (const g of gaussians.filter((b) => b.sourceId === source.id)) {
+          console.log(`    ${screen.label} @ z ${screen.z}, ${g.wavelengthNm} nm: w ${um(radiusAt(g, screen.z))}${magAt(screen.id, g.wavelengthNm)}`);
+        }
+      }
+    }
     if (source.kind !== 'gaussian') {
       for (const f of focusPerWavelength(setup, source.id)) {
         const approx = f.approximate ? ' approx.' : '';
@@ -39,13 +51,13 @@ for (const file of process.argv.slice(2)) {
       for (const screen of screens) {
         for (const spot of screenStats(sourceTrace, screen.id)) {
           console.log(
-            `    ${screen.label} @ z ${screen.z}, ${spot.wavelengthNm} nm: ${spot.heightsMm.length} rays, centroid ${mm(spot.centroidMm)}, RMS ${um(spot.rmsMm)}`,
+            `    ${screen.label} @ z ${screen.z}, ${spot.wavelengthNm} nm: ${spot.heightsMm.length} rays, centroid ${mm(spot.centroidMm)}, RMS ${um(spot.rmsMm)}${magAt(screen.id, spot.wavelengthNm)}`,
           );
         }
       }
     }
   }
-  for (const g of traceGaussians(setup, trace.endZ)) {
+  for (const g of gaussians) {
     const label = setup.sources.find((s) => s.id === g.sourceId)?.label;
     for (const waist of g.waists) {
       const where = waist.collimated ? 'collimated' : `z ${mm(waist.z)}`;

@@ -1,6 +1,7 @@
+import { radiusAt, traceGaussian } from './gaussian';
 import { opticExtent } from './optic';
-import { launchRays, lookupFor, sortedByAxialStart, traceRayCollecting } from './trace';
-import type { GlassLookup, Id, Optic, Ray, Setup, Source, SourceTrace } from './types';
+import { defaultEndZ, launchRays, lookupFor, sortedByAxialStart, traceRayCollecting } from './trace';
+import type { GlassLookup, Id, Optic, Ray, Screen, Setup, Source, SourceTrace } from './types';
 
 export interface FocusResult {
   wavelengthNm: number;
@@ -150,4 +151,147 @@ export function screenStats(trace: SourceTrace, screenId: Id): ScreenSpot[] {
     const centroidMm = mean(heightsMm);
     return { wavelengthNm, heightsMm, centroidMm, rmsMm: rmsAbout(heightsMm, centroidMm) };
   });
+}
+
+/**
+ * Magnification from a source to a screen at one wavelength. `no-rays`: nothing usable reaches
+ * the screen. `edge-ray-blocked`: a collimated beam lost an edge ray. `undefined`: a collimated
+ * beam with zero width or a single ray has no width to compare.
+ */
+export type Magnification =
+  | { wavelengthNm: number; value: number }
+  | { wavelengthNm: number; value: null; reason: 'no-rays' | 'edge-ray-blocked' | 'undefined' };
+
+// Measured flat to 8–9 significant figures between 1e-3 and 1e-6 mm on a 4f relay and an
+// f ≈ 12 mm asphere; truncation shows at 1e-2 and rounding at 1e-7.
+const MAGNIFICATION_STEP_MM = 1e-5;
+const MIN_MAGNIFICATION_STEP_MM = 1e-7;
+
+/** For each screen, the height at which each ray of the source's fan meets it (null where it doesn't). */
+function fanScreenHeights(
+  source: Source,
+  ahead: Optic[],
+  glasses: GlassLookup,
+  wavelengthNm: number,
+  screens: Screen[],
+): Map<Id, (number | null)[]> {
+  const paths = launchRays(source, ahead, wavelengthNm).map((ray) => traceRayCollecting(ray, ahead, glasses, ray.z, undefined));
+  return new Map(screens.map((screen) => [screen.id, paths.map((p) => p.screenHits?.[screen.id] ?? null)]));
+}
+
+const centroidOf = (heights: (number | null)[], indices: number[]) => mean(indices.map((i) => heights[i]!));
+
+/**
+ * Point source: dy′/dy of the spot centroid. The rays are those that reach the screen from the
+ * source as placed; the source is moved by ±δ and the same rays' centroid compared. If one of them
+ * is lost at ±δ (it passes within δ of a clipping edge), δ is halved; below the minimum it is
+ * dropped. Rays that only reach the screen at ±δ are ignored.
+ */
+function pointMagnification(
+  source: Source,
+  ahead: Optic[],
+  glasses: GlassLookup,
+  wavelengthNm: number,
+  screens: Screen[],
+): Map<Id, Magnification> {
+  const heightsAt = (y: number) => fanScreenHeights({ ...source, y }, ahead, glasses, wavelengthNm, screens);
+  const base = heightsAt(source.y);
+  const results = new Map<Id, Magnification>();
+  const pending = new Map<Id, number[]>();
+  for (const screen of screens) {
+    const indices = base.get(screen.id)!.flatMap((h, i) => (h === null ? [] : [i]));
+    if (indices.length === 0) results.set(screen.id, { wavelengthNm, value: null, reason: 'no-rays' });
+    else pending.set(screen.id, indices);
+  }
+  let last: { step: number; lo: Map<Id, (number | null)[]>; hi: Map<Id, (number | null)[]> } | null = null;
+  for (let step = MAGNIFICATION_STEP_MM; pending.size > 0 && step >= MIN_MAGNIFICATION_STEP_MM; step /= 2) {
+    const lo = heightsAt(source.y - step);
+    const hi = heightsAt(source.y + step);
+    for (const [id, indices] of pending) {
+      const l = lo.get(id)!;
+      const u = hi.get(id)!;
+      if (indices.every((i) => l[i] !== null && u[i] !== null)) {
+        results.set(id, { wavelengthNm, value: (centroidOf(u, indices) - centroidOf(l, indices)) / (2 * step) });
+        pending.delete(id);
+      }
+    }
+    last = { step, lo, hi };
+  }
+  for (const [id, indices] of pending) {
+    const l = last!.lo.get(id)!;
+    const u = last!.hi.get(id)!;
+    const kept = indices.filter((i) => l[i] !== null && u[i] !== null);
+    results.set(
+      id,
+      kept.length === 0
+        ? { wavelengthNm, value: null, reason: 'no-rays' }
+        : { wavelengthNm, value: (centroidOf(u, kept) - centroidOf(l, kept)) / (2 * last!.step) },
+    );
+  }
+  return results;
+}
+
+/** Collimated source: the signed separation of the two edge rays at the screen over the launch width. */
+function collimatedMagnification(
+  source: Source & { kind: 'collimated' },
+  ahead: Optic[],
+  glasses: GlassLookup,
+  wavelengthNm: number,
+  screens: Screen[],
+): Map<Id, Magnification> {
+  if (source.rayCount < 2 || source.widthMm === 0) {
+    return new Map(screens.map((s) => [s.id, { wavelengthNm, value: null, reason: 'undefined' }]));
+  }
+  const heights = fanScreenHeights(source, ahead, glasses, wavelengthNm, screens);
+  return new Map(
+    screens.map((screen): [Id, Magnification] => {
+      const hs = heights.get(screen.id)!;
+      const first = hs[0];
+      const last = hs[hs.length - 1];
+      if (first == null || last == null) {
+        const reason = hs.some((h) => h !== null) ? 'edge-ray-blocked' : 'no-rays';
+        return [screen.id, { wavelengthNm, value: null, reason }];
+      }
+      return [screen.id, { wavelengthNm, value: (last - first) / source.widthMm }];
+    }),
+  );
+}
+
+/**
+ * Magnification at every screen downstream of the source, per wavelength in the source's order.
+ * Point: dy′/dy of the spot centroid (signed). Collimated: edge-ray separation over the launch width
+ * (signed). Gaussian: w at the screen over w at the source plane (unsigned).
+ */
+export function screenMagnifications(setup: Setup, sourceId: Id): Map<Id, Magnification[]> {
+  const source = setup.sources.find((s) => s.id === sourceId);
+  const out = new Map<Id, Magnification[]>();
+  if (!source) return out;
+  const screens = setup.optics
+    .filter((o): o is Screen => o.kind === 'screen' && o.z >= source.z)
+    .sort((a, b) => a.z - b.z);
+  if (screens.length === 0) return out;
+  for (const screen of screens) out.set(screen.id, []);
+  const glasses = lookupFor(setup.glasses);
+  const ahead = opticsAhead(setup, source);
+  for (const wavelengthNm of source.wavelengthsNm) {
+    let byScreen: Map<Id, Magnification>;
+    if (source.kind === 'point') {
+      byScreen = pointMagnification(source, ahead, glasses, wavelengthNm, screens);
+    } else if (source.kind === 'collimated') {
+      byScreen = collimatedMagnification(source, ahead, glasses, wavelengthNm, screens);
+    } else {
+      const endZ = Math.max(defaultEndZ(setup), ...screens.map((s) => s.z));
+      const beam = traceGaussian(source, setup.optics, wavelengthNm, glasses, endZ);
+      const atSource = radiusAt(beam, source.z);
+      byScreen = new Map(
+        screens.map((screen): [Id, Magnification] => {
+          const w = radiusAt(beam, screen.z);
+          const ok = w !== null && atSource !== null && Number.isFinite(w) && atSource > 0;
+          return [screen.id, ok ? { wavelengthNm, value: w / atSource } : { wavelengthNm, value: null, reason: 'no-rays' }];
+        }),
+      );
+    }
+    for (const screen of screens) out.get(screen.id)!.push(byScreen.get(screen.id)!);
+  }
+  return out;
 }
