@@ -434,7 +434,7 @@ function renderPlot(view: ReadoutsView, setup: Setup, selectedId: Id | null): vo
   view.minControl.refresh();
   view.maxControl.refresh();
   view.canvas.hidden = false;
-  view.plotTitle.textContent = `Focal shift of ${source.label}, relative to its shortest focus`;
+  view.plotTitle.textContent = `Focal shift of ${source.label} after the last optic`;
   const { minNm, maxNm } = view.plot.range;
   drawShiftPlot(view, memoCurve(setup, source.id, minNm, maxNm), source.wavelengthsNm);
 }
