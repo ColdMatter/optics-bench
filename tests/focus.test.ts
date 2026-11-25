@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { refractiveIndex, makeGlassLookup } from '../src/engine/glass';
-import { focusPerWavelength, focusShiftCurve, screenStats } from '../src/engine/focus';
+import { focusPerWavelength, focusShiftCurve, screenMagnifications, screenStats } from '../src/engine/focus';
 import { traceSetup } from '../src/engine/trace';
 import type {
   Aperture,
@@ -109,5 +109,72 @@ describe('focus readouts', () => {
     expect(curve[4]!.wavelengthNm).toBe(1000);
     expect(curve[0]!.paraxialZ!).toBeLessThan(curve[4]!.paraxialZ!);
     expect(focusShiftCurve(setup([collimated()], [singlet()]), 'c', 600, 1000, 1)).toHaveLength(1);
+  });
+});
+
+describe('screenMagnifications', () => {
+  const screen = (z: number, id = 's'): Screen => ({ kind: 'screen', id, label: id, z });
+  // Ideal lenses at z = 50 (f 50) and z = 250 (f 150): a 4f relay from z = 0 to z = 400 with M = −3.
+  const relay = [ideal({ id: 'l1', z: 50, focalLengthMm: 50 }), ideal({ id: 'l2', z: 250, focalLengthMm: 150 })];
+  const only = (s: Setup, sourceId: string, screenId = 's') => screenMagnifications(s, sourceId).get(screenId)!;
+
+  test('point source imaged 2f–2f gives −1, on and off axis', () => {
+    for (const y of [0, 1.5]) {
+      const [m] = only(setup([point({ y })], [ideal(), screen(400)]), 'p');
+      expect(m!.value).toBeCloseTo(-1, 7);
+    }
+  });
+
+  test('point source through a 4f relay gives −f₂/f₁, on and off axis', () => {
+    for (const y of [0, 0.5]) {
+      const [m] = only(setup([point({ y })], [...relay, screen(400)]), 'p');
+      expect(m!.value).toBeCloseTo(-3, 7);
+    }
+  });
+
+  test('point source: a ray grazing a clipping edge keeps its place in the ray set', () => {
+    // Through a real singlet the rays move by different amounts (spherical aberration), so which
+    // rays make up the spot matters. The +4.5° ray passes the stop's upper edge with 2 nm to spare;
+    // a ±δ of 1e-5 mm would lose it on one side. M must match a stop that clears it comfortably.
+    const upper = 50 * Math.tan((4.5 * Math.PI) / 180);
+    const lower = -4.1; // between the −4.5° and −5° rays
+    const stopWithMargin = (margin: number) =>
+      aperture({ z: 50, decentreMm: (upper + margin + lower) / 2, diameterMm: upper + margin - lower });
+    const mAt = (margin: number) => only(setup([point()], [stopWithMargin(margin), singlet(), screen(300)]), 'p')[0]!.value!;
+    const reference = mAt(0.01);
+    expect(Math.abs(mAt(2e-6) - reference)).toBeLessThan(1e-6 * Math.abs(reference));
+    expect(Math.abs(mAt(-0.01) - reference)).toBeGreaterThan(1e-4 * Math.abs(reference)); // dropping the ray does matter
+  });
+
+  test('collimated beam through a telescope gives −f₂/f₁ after it and a positive fraction before the focus', () => {
+    const s = setup([collimated({ widthMm: 4, rayCount: 5 })], [...relay, screen(60, 'before'), screen(500, 'after')]);
+    expect(only(s, 'c', 'before')[0]!.value).toBeCloseTo(0.8, 9);
+    expect(only(s, 'c', 'after')[0]!.value).toBeCloseTo(-3, 9);
+  });
+
+  test('collimated beam: blocked edge ray, no width and no rays give no number', () => {
+    expect(only(setup([collimated({ widthMm: 4, rayCount: 5 })], [aperture({ z: 10, diameterMm: 3 }), screen(100)]), 'c')[0])
+      .toEqual({ wavelengthNm: 780, value: null, reason: 'edge-ray-blocked' });
+    expect(only(setup([collimated({ widthMm: 0 })], [screen(100)]), 'c')[0]).toMatchObject({ value: null, reason: 'undefined' });
+    expect(only(setup([collimated({ rayCount: 1 })], [screen(100)]), 'c')[0]).toMatchObject({ value: null, reason: 'undefined' });
+    const away = aperture({ z: 10, decentreMm: 100, diameterMm: 1 });
+    expect(only(setup([collimated()], [away, screen(100)]), 'c')[0]).toMatchObject({ value: null, reason: 'no-rays' });
+  });
+
+  test('Gaussian beam from the front focal plane of a telescope to the back one is magnified by |f₂/f₁|', () => {
+    const g: GaussianSource = {
+      kind: 'gaussian', id: 'g', label: 'G', z: 0, y: 0, wavelengthsNm: [780], angleDeg: 0, waistRadiusMm: 0.5, waistZ: 0, m2: 1,
+    };
+    expect(only(setup([g], [...relay, screen(400)]), 'g')[0]!.value).toBeCloseTo(3, 9);
+    const blocked = aperture({ z: 10, decentreMm: 100, diameterMm: 1 });
+    expect(only(setup([g], [blocked, screen(400)]), 'g')[0]).toMatchObject({ value: null, reason: 'no-rays' });
+  });
+
+  test('one entry per wavelength, only for screens downstream of the source', () => {
+    const s = setup([point({ z: 100, wavelengthsNm: [780, 852] })], [screen(50, 'up'), ideal({ z: 300 }), screen(500, 'down')]);
+    const result = screenMagnifications(s, 'p');
+    expect([...result.keys()]).toEqual(['down']);
+    expect(result.get('down')!.map((m) => m.wavelengthNm)).toEqual([780, 852]);
+    expect(result.get('down')![0]!.value).toBeCloseTo(-1, 7);
   });
 });

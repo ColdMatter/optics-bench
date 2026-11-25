@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import type { FocusResult } from '../src/engine/focus';
 import type { GaussianTrace, Setup, Source } from '../src/engine/types';
-import { describeWarnings, formatFocus, formatGaussian, formatLength, isOffAxis } from '../src/ui/readouts';
+import { describeWarnings, formatFocus, formatGaussian, formatLength, formatMagnification, isOffAxis } from '../src/ui/readouts';
 
 const NOTE = 'Tangential (meridional) rays only — sagittal focus not computed';
 
@@ -158,5 +158,17 @@ describe('describeWarnings', () => {
       'SLM 1: the phase gradient is finer than the pixel pitch can show; rays there are blocked',
       'N-BK7 index extrapolated beyond its data at 1550 nm',
     ]);
+  });
+});
+
+describe('formatMagnification', () => {
+  test('4 significant figures, signed, or why there is no number', () => {
+    expect(formatMagnification({ wavelengthNm: 780, value: -1.00100256 })).toBe(', M = -1.001');
+    expect(formatMagnification({ wavelengthNm: 780, value: 28.70701 })).toBe(', M = 28.71');
+    expect(formatMagnification({ wavelengthNm: 780, value: 1e-15 })).toBe(', M = 0.000');
+    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'edge-ray-blocked' })).toBe(', M: edge ray blocked');
+    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'undefined' })).toBe(', M undefined (no beam width)');
+    expect(formatMagnification({ wavelengthNm: 780, value: null, reason: 'no-rays' })).toBe(', M unavailable');
+    expect(formatMagnification(undefined)).toBe('');
   });
 });
