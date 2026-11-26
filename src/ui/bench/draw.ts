@@ -17,6 +17,10 @@ export interface DrawOptions {
   showGaussian: boolean;
   hoverZ: number | null;
   hoverId?: Id | null;
+  /** Draw in the light theme whatever the page's theme is (for exported images). */
+  lightTheme?: boolean;
+  /** Device pixels per CSS pixel; by default the canvas size over the view size. */
+  pixelRatio?: number;
 }
 
 interface Theme {
@@ -41,20 +45,34 @@ const SOURCE_DOT_PX = 4;
 const MIN_BAR_PX = 12;
 const SLM_PITCH_SAMPLES = 160;
 
+/** The light theme's colours, as in styles.css. */
+const LIGHT_THEME: Theme = {
+  text: '#1d2127',
+  muted: '#6a717c',
+  axis: '#a3aab4',
+  accent: '#2463c9',
+  warn: '#b26a00',
+  glass: 'rgb(110 165 225 / 0.22)',
+  glassAlt: 'rgb(70 120 190 / 0.34)',
+  stroke: '#3d4754',
+  panel: '#ffffff',
+  border: '#d6dae0',
+};
+
 function readTheme(el: Element): Theme {
   const css = getComputedStyle(el);
   const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
   return {
-    text: v('--text', '#1d2127'),
-    muted: v('--muted', '#6a717c'),
-    axis: v('--bench-axis', '#9aa1ab'),
-    accent: v('--accent', '#2463c9'),
-    warn: v('--warn', '#b26a00'),
-    glass: v('--bench-glass', 'rgb(120 170 220 / 0.28)'),
-    glassAlt: v('--bench-glass-alt', 'rgb(90 130 190 / 0.4)'),
-    stroke: v('--bench-optic', '#4a5563'),
-    panel: v('--panel', '#ffffff'),
-    border: v('--border', '#d6dae0'),
+    text: v('--text', LIGHT_THEME.text),
+    muted: v('--muted', LIGHT_THEME.muted),
+    axis: v('--bench-axis', LIGHT_THEME.axis),
+    accent: v('--accent', LIGHT_THEME.accent),
+    warn: v('--warn', LIGHT_THEME.warn),
+    glass: v('--bench-glass', LIGHT_THEME.glass),
+    glassAlt: v('--bench-glass-alt', LIGHT_THEME.glassAlt),
+    stroke: v('--bench-optic', LIGHT_THEME.stroke),
+    panel: v('--panel', LIGHT_THEME.panel),
+    border: v('--border', LIGHT_THEME.border),
   };
 }
 
@@ -725,8 +743,8 @@ export function drawBench(
   gaussians: GaussianTrace[],
   opts: DrawOptions,
 ): void {
-  const theme = readTheme(ctx.canvas);
-  const scale = ctx.canvas.width / view.widthPx;
+  const theme = opts.lightTheme ? LIGHT_THEME : readTheme(ctx.canvas);
+  const scale = opts.pixelRatio ?? ctx.canvas.width / view.widthPx;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.setTransform(scale, 0, 0, scale, 0, 0);

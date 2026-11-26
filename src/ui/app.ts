@@ -7,9 +7,11 @@ import { attachBenchInteraction, hoverLines, type BenchHover } from './bench/int
 import { fitAll, resize as resizeView, type View } from './bench/view';
 import { h, isTyping, pickFile } from './controls';
 import { insertElement, kindNames, newOptic, newSource, warningsByElement, type OpticKind, type SourceKind } from './elements';
+import { benchPng, benchSvg, copyText, toCsv, toMarkdown, type ExportTables } from './export';
 import { createPropertiesPanel } from './properties';
+import { readoutsExport } from './readouts';
 import type { AppState, Store } from './store';
-import { createElementsTable } from './table';
+import { createElementsTable, elementsExport } from './table';
 
 export interface ViewToggles {
   showRays: boolean;
@@ -101,7 +103,7 @@ export function showMessage(title: string, message: string): void {
 }
 
 interface WritableFile {
-  write(data: string): Promise<void>;
+  write(data: Blob | string): Promise<void>;
   close(): Promise<void>;
 }
 interface SaveHandle {
@@ -117,10 +119,23 @@ type SaveFilePicker = (options: {
 const nativeSavePicker = (): SaveFilePicker | undefined =>
   (window as unknown as { showSaveFilePicker?: SaveFilePicker }).showSaveFilePicker?.bind(window);
 
-const withJsonExtension = (name: string) => (/\.json$/i.test(name) ? name : `${name}.json`);
+/** What is being saved: the dialog title, the file type and its extension (with the dot). */
+interface FileKind {
+  title: string;
+  description: string;
+  mime: string;
+  ext: string;
+}
+
+const SETUP_FILE: FileKind = { title: 'Save setup as', description: 'Optics setup', mime: 'application/json', ext: '.json' };
+const SVG_FILE: FileKind = { title: 'Export image as', description: 'SVG image', mime: 'image/svg+xml', ext: '.svg' };
+const PNG_FILE: FileKind = { title: 'Export image as', description: 'PNG image', mime: 'image/png', ext: '.png' };
+const CSV_FILE: FileKind = { title: 'Export table as', description: 'CSV table', mime: 'text/csv', ext: '.csv' };
+
+const withExtension = (name: string, ext: string) => (name.toLowerCase().endsWith(ext) ? name : `${name}${ext}`);
 
 /** Asks for a file name in the page; null if cancelled. */
-function askFileName(suggested: string): Promise<string | null> {
+function askFileName(suggested: string, kind: FileKind): Promise<string | null> {
   const input = h('input', { type: 'text', class: 'save-name', required: true, 'aria-label': 'File name', autocomplete: 'off', spellcheck: 'false' });
   input.value = suggested;
   const cancel = h('button', { type: 'button' }, 'Cancel');
@@ -128,28 +143,74 @@ function askFileName(suggested: string): Promise<string | null> {
   const dialog = h(
     'dialog',
     { class: 'message' },
-    h('h3', {}, 'Save setup as'),
+    h('h3', {}, kind.title),
     h('form', { method: 'dialog' }, input, h('div', { class: 'buttons' }, cancel, save)),
   );
   cancel.addEventListener('click', () => dialog.close('cancel'));
   document.body.append(dialog);
   dialog.showModal();
-  input.setSelectionRange(0, suggested.replace(/\.json$/i, '').length);
+  input.setSelectionRange(0, suggested.toLowerCase().endsWith(kind.ext) ? suggested.length - kind.ext.length : suggested.length);
   return new Promise((resolve) => {
     dialog.addEventListener('close', () => {
       dialog.remove();
-      resolve(dialog.returnValue === 'save' ? withJsonExtension(input.value.trim()) : null);
+      resolve(dialog.returnValue === 'save' ? withExtension(input.value.trim(), kind.ext) : null);
     });
   });
 }
 
-function download(name: string, text: string): void {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+function download(name: string, data: Blob): void {
+  const url = URL.createObjectURL(data);
   const a = h('a', { href: url, download: name });
   document.body.append(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/**
+ * Saves through the browser's save dialog where there is one, otherwise asks for a name and
+ * downloads. Returns the name saved under, or null if cancelled or failed (after saying why).
+ */
+async function saveFile(suggestedName: string, data: Blob | string, kind: FileKind): Promise<string | null> {
+  const picker = nativeSavePicker();
+  if (picker) {
+    let handle: SaveHandle | null = null;
+    try {
+      handle = await picker({ suggestedName, types: [{ description: kind.description, accept: { [kind.mime]: [kind.ext] } }] });
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') return null;
+    }
+    if (handle) {
+      try {
+        const writable = await handle.createWritable();
+        await writable.write(data);
+        await writable.close();
+        return handle.name;
+      } catch (e) {
+        showMessage(`Could not save ${handle.name}`, (e as Error).message);
+        return null;
+      }
+    }
+  }
+  const name = await askFileName(suggestedName, kind);
+  if (name === null) return null;
+  download(name, typeof data === 'string' ? new Blob([data], { type: kind.mime }) : data);
+  return name;
+}
+
+/** A small button that copies `text()` and says so on itself for a moment. */
+function copyButton(what: string, text: () => string): HTMLButtonElement {
+  const button = h('button', { class: 'panel-action', title: `Copy the ${what} as Markdown tables` }, 'Copy');
+  let reset: ReturnType<typeof setTimeout> | undefined;
+  button.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    const markdown = text();
+    const ok = markdown.trim() !== '' && (await copyText(markdown));
+    button.textContent = markdown.trim() === '' ? 'Nothing to copy' : ok ? 'Copied' : 'Copy failed';
+    clearTimeout(reset);
+    reset = setTimeout(() => (button.textContent = 'Copy'), 1500);
+  });
+  return button;
 }
 
 export function createApp(root: HTMLElement, store: Store): App {
@@ -206,32 +267,41 @@ export function createApp(root: HTMLElement, store: Store): App {
   });
   const saveButton = h('button', { title: 'Save the setup as a JSON file' }, 'Save…');
   saveButton.addEventListener('click', async () => {
-    const text = serialiseSetup(store.get().setup);
-    const picker = nativeSavePicker();
-    if (picker) {
-      let handle: SaveHandle | null = null;
-      try {
-        handle = await picker({ suggestedName: fileName, types: [{ description: 'Optics setup', accept: { 'application/json': ['.json'] } }] });
-      } catch (e) {
-        if ((e as Error).name === 'AbortError') return;
-      }
-      if (handle) {
-        try {
-          const writable = await handle.createWritable();
-          await writable.write(text);
-          await writable.close();
-          fileName = handle.name;
-        } catch (e) {
-          showMessage(`Could not save ${handle.name}`, (e as Error).message);
-        }
-        return;
-      }
-    }
-    const name = await askFileName(fileName);
-    if (name === null) return;
-    fileName = name;
-    download(name, text);
+    const name = await saveFile(fileName, serialiseSetup(store.get().setup), SETUP_FILE);
+    if (name !== null) fileName = name;
   });
+
+  // Exports are named after the setup file.
+  const exportName = (suffix: string, kind: FileKind) => `${fileName.replace(/\.json$/i, '')}${suffix}${kind.ext}`;
+  const picture = () => ({ view: getView(), state: store.get(), ...results(), ...toggles });
+  const elementsTables = (): ExportTables => {
+    const { setup } = store.get();
+    return elementsExport(setup, warningsByElement(setup, results().trace.warnings));
+  };
+  const readoutsTables = (): ExportTables => {
+    const { trace, gaussians } = results();
+    return readoutsExport(store.get().setup, trace, gaussians);
+  };
+  const imageMenu = menuButton('Export image', [
+    { label: 'SVG (vector)…', action: () => void saveFile(exportName('', SVG_FILE), benchSvg(picture()), SVG_FILE) },
+    {
+      label: 'PNG…',
+      action: async () => {
+        let png: Blob;
+        try {
+          png = await benchPng(picture());
+        } catch (e) {
+          showMessage('Could not export the image', (e as Error).message);
+          return;
+        }
+        await saveFile(exportName('', PNG_FILE), png, PNG_FILE);
+      },
+    },
+  ]);
+  const tablesMenu = menuButton('Export tables', [
+    { label: 'Elements as CSV…', action: () => void saveFile(exportName('-elements', CSV_FILE), toCsv(elementsTables()), CSV_FILE) },
+    { label: 'Readouts as CSV…', action: () => void saveFile(exportName('-readouts', CSV_FILE), toCsv(readoutsTables()), CSV_FILE) },
+  ]);
 
   const undoButton = h('button', {}, 'Undo');
   const redoButton = h('button', {}, 'Redo');
@@ -264,6 +334,9 @@ export function createApp(root: HTMLElement, store: Store): App {
     openButton,
     saveButton,
     h('span', { class: 'sep' }),
+    imageMenu,
+    tablesMenu,
+    h('span', { class: 'sep' }),
     undoButton,
     redoButton,
     h('span', { class: 'spacer' }),
@@ -278,14 +351,14 @@ export function createApp(root: HTMLElement, store: Store): App {
   const benchTooltip = h('div', { class: 'bench-tooltip', role: 'status' });
   benchTooltip.hidden = true;
   const bench = h('section', { class: 'panel bench' }, benchCanvas, benchTooltip);
-  const panel = (cls: string, title: string) => {
+  const panel = (cls: string, title: string, action?: HTMLElement) => {
     const body = h('div', { class: 'panel-body' });
-    const section = h('section', { class: `panel ${cls}` }, h('h2', {}, title), body);
+    const section = h('section', { class: `panel ${cls}` }, h('h2', {}, h('span', {}, title), action), body);
     return { section, body };
   };
-  const elements = panel('elements', 'Elements');
+  const elements = panel('elements', 'Elements', copyButton('elements', () => toMarkdown(elementsTables())));
   const properties = panel('properties', 'Properties');
-  const readouts = panel('readouts', 'Readouts');
+  const readouts = panel('readouts', 'Readouts', copyButton('readouts', () => toMarkdown(readoutsTables(), true)));
   const solver = panel('solver', 'Solver');
   root.replaceChildren(
     h('div', { class: 'app' }, toolbar, bench, elements.section, properties.section, readouts.section, solver.section),

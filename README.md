@@ -28,6 +28,13 @@ Each lens carries the source of its prescription: a Zemax file (`zmx`) or values
 
 Build it once (below), then open `dist/index.html` in any modern browser, by double-clicking it or from `file://`. The file is self-contained, so it can be copied anywhere. The setup is autosaved in the browser's storage, so it is still there when you reopen the page. **Save…** asks where to save the setup file and what to call it: Chrome and Edge open the system save dialog, other browsers ask for a name and download the file. **Open…** reads one back (format below).
 
+## Exporting
+
+- **Export image ▸ SVG** saves the bench as a vector image, framed as it is on screen (pan, zoom or **Fit** first), with rays and Gaussian beams as the **Show** toggles have them. It is always in the light theme on white, without the hover line or selection highlight. SVG stays sharp at any size and opens in Inkscape or Illustrator for editing; it is the one to use for papers and posters.
+- **Export image ▸ PNG** saves the same picture at three times the on-screen resolution, for slides and chat.
+- **Export tables** saves the elements table or the readouts as CSV, named after the setup file. Elements are at full precision; readouts are as displayed, units included, with one block per source and rows under a screen named "Screen: quantity".
+- **Copy**, in the Elements and Readouts headers, copies the same tables to the clipboard as Markdown.
+
 ## Controls
 
 | On the bench | Does |

@@ -5,6 +5,7 @@ import type { GaussianTrace, Id, Optic, Screen, Setup, SetupTrace, Source, Trace
 import { wavelengthColour } from './colours';
 import { formatFull, h, numberControl, type Control } from './controls';
 import { kindNames } from './elements';
+import type { ExportTable, ExportTables } from './export';
 import type { AppState } from './store';
 
 export const OFF_AXIS_NOTE = 'Tangential (meridional) rays only — sagittal focus not computed';
@@ -291,6 +292,39 @@ export function sourceReadout(
     }
   }
   return { wavelengthsNm, rows, notes: offAxisNote };
+}
+
+/**
+ * The readouts as text: a table per source, rows under a screen named "Screen: quantity", and
+ * the trace warnings. Values are as displayed, units included.
+ */
+export function readoutsExport(setup: Setup, trace: SetupTrace, gaussians: GaussianTrace[]): ExportTables {
+  const labels: Record<Id, string> = Object.fromEntries([...setup.sources, ...setup.optics].map((e) => [e.id, e.label]));
+  const tables = setup.sources.map((source): ExportTable => {
+    const readout = sourceReadout(setup, source, trace, gaussians, labels);
+    const rows: string[][] = [];
+    let heading: string | null = null;
+    for (const row of readout.rows) {
+      const cells = row.cells.map((c) => c?.text ?? '');
+      if (row.heading) {
+        heading = row.label;
+        // A heading with values of its own (no rays reach the screen) is a row; otherwise it only names those below.
+        if (row.cells.some((c) => c !== null)) {
+          rows.push([row.label, ...cells]);
+          heading = null;
+        }
+        continue;
+      }
+      if (!row.sub) heading = null;
+      rows.push([heading ? `${heading}: ${row.label}` : row.label, ...cells]);
+    }
+    return {
+      header: [`${source.label || kindNames[source.kind]} (${kindNames[source.kind]})`, ...readout.wavelengthsNm.map((nm) => `${nm} nm`)],
+      rows,
+      notes: readout.notes.map((n) => n.text),
+    };
+  });
+  return { tables, warnings: describeWarnings(setup, trace.warnings) };
 }
 
 function readoutTable(title: (Node | string)[], readout: SourceReadout): HTMLTableElement {

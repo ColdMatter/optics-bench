@@ -1,7 +1,8 @@
 import { sortedByAxialStart } from '../engine/trace';
-import type { Id, Optic, Source } from '../engine/types';
-import { formatShort, h, numberControl, textControl, type Control } from './controls';
+import type { Id, Optic, Setup, Source } from '../engine/types';
+import { formatFull, formatShort, h, numberControl, textControl, type Control } from './controls';
 import { isSource, kindNames, removeElement, updateElement } from './elements';
+import type { ExportTables } from './export';
 import { fieldsFor } from './properties';
 import type { AppState, Store } from './store';
 
@@ -31,6 +32,26 @@ function partText(item: Item): string {
   if (item.kind === 'lens') return item.flipped ? `${item.prescription.partNumber} (flipped)` : item.prescription.partNumber;
   if (item.kind === 'aperture') return `⌀ ${formatShort(item.diameterMm)} mm`;
   return '—';
+}
+
+/** The elements table as text, in the table's order, at full precision. */
+export function elementsExport(setup: Setup, warnings: Map<Id, string[]>): ExportTables {
+  const ordered: Item[] = [...setup.sources, ...sortedByAxialStart(setup.optics)];
+  const rows = ordered.map((item, i) => {
+    const previous = ordered[i - 1];
+    const part = item.kind === 'ideal' ? `f ${formatFull(item.focalLengthMm)} mm` : partText(item);
+    return [
+      shortKind[item.kind],
+      item.label,
+      formatFull(item.z),
+      previous ? formatFull(item.z - previous.z) : '',
+      part === '—' ? '' : part,
+      formatFull(isSource(item) ? item.y : 'decentreMm' in item ? item.decentreMm : NaN),
+      (warnings.get(item.id) ?? []).join('; '),
+    ];
+  });
+  const header = ['Type', 'Label', 'z (mm)', 'Δz (mm)', 'Part / f', 'y / decentre (mm)', 'Warnings'];
+  return { tables: [{ header, rows }] };
 }
 
 export interface ElementsTable {
